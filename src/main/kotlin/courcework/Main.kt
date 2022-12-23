@@ -10,6 +10,24 @@ data class Word(
 
 fun main() {
 
+    while (true) {
+
+        println("Меню: \n1 - Учить слова \n2 - Статистика \n3 - Выход ")
+
+        when (readln()) {
+            "1" -> println("TODO меню учить слова")
+            "2" -> printStats()
+            "3" -> return
+
+            else -> println("Введен недопустимый параметр")
+        }
+
+    }
+
+}
+
+fun printStats() {
+
     val dictionary: MutableList<Word> = mutableListOf()
 
     val wordsTxt = File("words.txt")
@@ -26,6 +44,10 @@ fun main() {
         )
     }
 
-    dictionary.forEach { println(it) }
+    val countWord = dictionary.size
+    val learnedWord = dictionary.filter { it.correctAnswersCount >= 3 }.size
+    val percentLearnedWord = learnedWord.toDouble() / countWord.toDouble() * 100
+
+    println("Выучено $learnedWord из $countWord | ${percentLearnedWord.toInt()}%")
 
 }
