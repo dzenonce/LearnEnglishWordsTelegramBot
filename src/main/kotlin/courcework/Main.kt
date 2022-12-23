@@ -8,27 +8,9 @@ data class Word(
     val correctAnswersCount: Int = 0,
 )
 
+val dictionary: MutableList<Word> = mutableListOf()
+
 fun main() {
-
-    while (true) {
-
-        println("Меню: \n1 - Учить слова \n2 - Статистика \n3 - Выход ")
-
-        when (readln()) {
-            "1" -> println("TODO меню учить слова")
-            "2" -> printStats()
-            "3" -> return
-
-            else -> println("Введен недопустимый параметр")
-        }
-
-    }
-
-}
-
-fun printStats() {
-
-    val dictionary: MutableList<Word> = mutableListOf()
 
     val wordsTxt = File("words.txt")
 
@@ -44,6 +26,24 @@ fun printStats() {
         )
     }
 
+    while (true) {
+
+        println("Меню: \n1 - Учить слова \n2 - Статистика \n3 - Выход ")
+
+        when (readln()) {
+            "1" -> println("TODO меню учить слова")
+            "2" -> printStatistics()
+            EXIT -> return
+
+            else -> println("Введен недопустимый параметр")
+        }
+
+    }
+
+}
+
+fun printStatistics() {
+
     val countWord = dictionary.size
     val countLearnedWord = dictionary.filter { it.correctAnswersCount >= 3 }.size
     val percentLearnedWord = countLearnedWord.toDouble() / countWord.toDouble() * 100
@@ -51,3 +51,5 @@ fun printStats() {
     println("Выучено $countLearnedWord из $countWord | ${percentLearnedWord.toInt()}%")
 
 }
+
+const val EXIT = "3"
