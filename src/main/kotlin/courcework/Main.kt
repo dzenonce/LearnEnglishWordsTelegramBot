@@ -31,7 +31,7 @@ fun main() {
         println("Меню: \n1 - Учить слова \n2 - Статистика \n3 - Выход ")
 
         when (readln()) {
-            "1" -> println("TODO меню учить слова")
+            "1" -> learnWords()
             "2" -> printStatistics()
             "3" -> return
 
@@ -46,10 +46,39 @@ fun printStatistics() {
 
     val countWord = dictionary.size
     val countLearnedWord = dictionary.filter { it.correctAnswersCount >= REQUIRED_COUNT_CORRECT_ANSWER }.size
+
     val percentLearnedWord = countLearnedWord.toDouble() / countWord.toDouble() * 100
 
     println("Выучено $countLearnedWord из $countWord | ${percentLearnedWord.toInt()}%")
 
 }
 
+fun learnWords() {
+
+    while (true) {
+
+        val listUnlearnedWords = dictionary.filter { it.correctAnswersCount < REQUIRED_COUNT_CORRECT_ANSWER }
+
+        if (listUnlearnedWords.isEmpty()) {
+            println("Вы выучили все слова")
+            return
+
+        } else {
+
+            val listFourWordToLearn = listUnlearnedWords.map { it }.take(NUMBER_OF_ANSWER_OPTIONS).shuffled()
+
+            println(listFourWordToLearn.random().original)
+
+            listFourWordToLearn.forEachIndexed { index, word ->
+                println("${index + 1} - ${word.translate}")
+            }
+
+            break
+        }
+
+    }
+
+}
+
 const val REQUIRED_COUNT_CORRECT_ANSWER = 3
+const val NUMBER_OF_ANSWER_OPTIONS = 4

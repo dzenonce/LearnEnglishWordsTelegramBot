@@ -2,6 +2,9 @@ cat|кот|5
 dog|собака|2
 wall|стена|0
 thank you|спасибо|5
-percent|процент|5
-car|машина|5
-wolf|волк|5
+percent|процент|2
+car|машина|3
+wolf|волк|2
+good|хорошо|2
+string|строка|0
+apple|яблоко|2
