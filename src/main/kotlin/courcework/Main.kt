@@ -8,9 +8,9 @@ data class Word(
     val correctAnswersCount: Int = 0,
 )
 
-fun main() {
+val dictionary: MutableList<Word> = mutableListOf()
 
-    val dictionary: MutableList<Word> = mutableListOf()
+fun main() {
 
     val wordsTxt = File("words.txt")
 
@@ -26,6 +26,30 @@ fun main() {
         )
     }
 
-    dictionary.forEach { println(it) }
+    while (true) {
+
+        println("Меню: \n1 - Учить слова \n2 - Статистика \n3 - Выход ")
+
+        when (readln()) {
+            "1" -> println("TODO меню учить слова")
+            "2" -> printStatistics()
+            "3" -> return
+
+            else -> println("Введен недопустимый параметр")
+        }
+
+    }
 
 }
+
+fun printStatistics() {
+
+    val countWord = dictionary.size
+    val countLearnedWord = dictionary.filter { it.correctAnswersCount >= REQUIRED_COUNT_CORRECT_ANSWER }.size
+    val percentLearnedWord = countLearnedWord.toDouble() / countWord.toDouble() * 100
+
+    println("Выучено $countLearnedWord из $countWord | ${percentLearnedWord.toInt()}%")
+
+}
+
+const val REQUIRED_COUNT_CORRECT_ANSWER = 3
