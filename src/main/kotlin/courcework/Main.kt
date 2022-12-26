@@ -45,6 +45,7 @@ fun main() {
 fun printStatistics() {
 
     val countWord = dictionary.size
+
     val countLearnedWord = dictionary.filter { it.correctAnswersCount >= REQUIRED_COUNT_CORRECT_ANSWER }.size
 
     val percentLearnedWord = countLearnedWord.toDouble() / countWord.toDouble() * 100
@@ -55,26 +56,33 @@ fun printStatistics() {
 
 fun learnWords() {
 
+    val learnedWord = dictionary.filter { it.correctAnswersCount >= REQUIRED_COUNT_CORRECT_ANSWER }
+
     while (true) {
 
-        val listUnlearnedWords = dictionary.filter { it.correctAnswersCount < REQUIRED_COUNT_CORRECT_ANSWER }
+        val listUnlearnedWords =
+            dictionary.filter { it.correctAnswersCount < REQUIRED_COUNT_CORRECT_ANSWER }.toMutableList()
 
         if (listUnlearnedWords.isEmpty()) {
             println("Вы выучили все слова")
             return
-
-        } else {
-
-            val listFourWordToLearn = listUnlearnedWords.map { it }.take(NUMBER_OF_ANSWER_OPTIONS).shuffled()
-
-            println(listFourWordToLearn.random().original)
-
-            listFourWordToLearn.forEachIndexed { index, word ->
-                println("${index + 1} - ${word.translate}")
-            }
-
-            break
         }
+
+        if (listUnlearnedWords.size < NUMBER_OF_ANSWER_OPTIONS) {
+            while (listUnlearnedWords.size < 4) {
+                listUnlearnedWords.add(learnedWord.random())
+            }
+        }
+
+        val listFourWordToLearn = listUnlearnedWords.shuffled().take(NUMBER_OF_ANSWER_OPTIONS)
+
+        println(listFourWordToLearn.random().original)
+
+        listFourWordToLearn.forEachIndexed { index, word ->
+            println("${index + 1} - ${word.translate}")
+        }
+
+        break
 
     }
 
