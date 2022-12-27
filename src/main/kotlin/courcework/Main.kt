@@ -5,7 +5,7 @@ import java.io.File
 data class Word(
     val original: String,
     val translate: String,
-    val correctAnswersCount: Int = 0,
+    var correctAnswersCount: Int = 0,
 )
 
 val dictionary: MutableList<Word> = mutableListOf()
@@ -56,7 +56,7 @@ fun printStatistics() {
 
 fun learnWords() {
 
-    val learnedWord = dictionary.filter { it.correctAnswersCount >= REQUIRED_COUNT_CORRECT_ANSWER }
+    println("Для выхода в главное меню введите 0")
 
     while (true) {
 
@@ -69,20 +69,44 @@ fun learnWords() {
         }
 
         if (listUnlearnedWords.size < NUMBER_OF_ANSWER_OPTIONS) {
-            while (listUnlearnedWords.size < 4) {
-                listUnlearnedWords.add(learnedWord.random())
-            }
+
+            val learnedWords = dictionary.filter { it.correctAnswersCount >= REQUIRED_COUNT_CORRECT_ANSWER }
+            val missingWords = learnedWords.shuffled().take(NUMBER_OF_ANSWER_OPTIONS - listUnlearnedWords.size)
+
+            missingWords.forEach { listUnlearnedWords.add(it) }
+
         }
 
         val listFourWordToLearn = listUnlearnedWords.shuffled().take(NUMBER_OF_ANSWER_OPTIONS)
 
-        println(listFourWordToLearn.random().original)
+        val correctWord = listFourWordToLearn.random().original
+
+        println(correctWord)
+
+        val responseOptionsForIteration: MutableMap<Int, String> = mutableMapOf()
 
         listFourWordToLearn.forEachIndexed { index, word ->
+
+            responseOptionsForIteration.set(
+                index + 1,
+                word.original
+            )
+
             println("${index + 1} - ${word.translate}")
         }
 
-        break
+        val userChoseAnswer = readln()?.toIntOrNull() ?: println("Введите цифру!")
+
+        if (userChoseAnswer.equals(0)) break
+
+        val selectedWord = responseOptionsForIteration.get(userChoseAnswer)
+
+        if (correctWord.equals(selectedWord)) {
+            dictionary.forEach {
+                if (it.original.equals(selectedWord)) it.correctAnswersCount++
+            }
+
+        }
 
     }
 
