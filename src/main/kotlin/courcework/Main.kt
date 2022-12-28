@@ -10,9 +10,9 @@ data class Word(
 
 val dictionary: MutableList<Word> = mutableListOf()
 
-fun main() {
+val wordsTxt = File("words.txt")
 
-    val wordsTxt = File("words.txt")
+fun main() {
 
     wordsTxt.forEachLine { text ->
         val line = text.split("|")
@@ -50,8 +50,6 @@ fun printStatistics() {
 
 fun learnWords() {
 
-    println("Для выхода в главное меню введите 0")
-
     while (true) {
 
         val listUnlearnedWords =
@@ -77,15 +75,32 @@ fun learnWords() {
         listFourWordToLearn.forEachIndexed { index, word ->
             println("${index + 1} - ${word.translate}")
         }
+        println("----\n(0) - Выход \n----")
 
         val userChoseAnswer = readln()?.toIntOrNull() ?: println("Введите цифру!")
         if (userChoseAnswer.equals(0)) break
 
         val correctWordIndex = listFourWordToLearn.indexOf(correctWord) + 1
+
         if (userChoseAnswer == correctWordIndex) {
             correctWord.correctAnswersCount++
-        }
+            println("Правильно!")
+
+            saveDictionary()
+
+        } else println("Неправильно - слово ${correctWord.translate}")
     }
+
+}
+
+fun saveDictionary() {
+
+    var newWordsList: String = ""
+
+    dictionary.forEach {
+        newWordsList += "${it.original}|${it.translate}|${it.correctAnswersCount}\n"
+    }
+    wordsTxt.writeText(newWordsList)
 
 }
 
