@@ -29,25 +29,19 @@ fun main() {
     while (true) {
 
         println("Меню: \n1 - Учить слова \n2 - Статистика \n3 - Выход ")
-
         when (readln()) {
             "1" -> learnWords()
             "2" -> printStatistics()
             "3" -> return
-
             else -> println("Введен недопустимый параметр")
         }
-
     }
-
 }
 
 fun printStatistics() {
 
     val countWord = dictionary.size
-
     val countLearnedWord = dictionary.filter { it.correctAnswersCount >= REQUIRED_COUNT_CORRECT_ANSWER }.size
-
     val percentLearnedWord = countLearnedWord.toDouble() / countWord.toDouble() * 100
 
     println("Выучено $countLearnedWord из $countWord | ${percentLearnedWord.toInt()}%")
@@ -69,7 +63,6 @@ fun learnWords() {
         }
 
         if (listUnlearnedWords.size < NUMBER_OF_ANSWER_OPTIONS) {
-
             val learnedWords = dictionary.filter { it.correctAnswersCount >= REQUIRED_COUNT_CORRECT_ANSWER }
             val missingWords = learnedWords.shuffled().take(NUMBER_OF_ANSWER_OPTIONS - listUnlearnedWords.size)
 
@@ -89,7 +82,6 @@ fun learnWords() {
         if (userChoseAnswer.equals(0)) break
 
         val correctWordIndex = listFourWordToLearn.indexOf(correctWord) + 1
-
         if (userChoseAnswer == correctWordIndex) {
             correctWord.correctAnswersCount++
         }
