@@ -5,7 +5,7 @@ import java.io.File
 data class Word(
     val original: String,
     val translate: String,
-    val correctAnswersCount: Int = 0,
+    var correctAnswersCount: Int = 0,
 )
 
 val dictionary: MutableList<Word> = mutableListOf()
@@ -29,17 +29,13 @@ fun main() {
     while (true) {
 
         println("Меню: \n1 - Учить слова \n2 - Статистика \n3 - Выход ")
-
         when (readln()) {
-            "1" -> println("TODO меню учить слова")
+            "1" -> learnWords()
             "2" -> printStatistics()
             "3" -> return
-
             else -> println("Введен недопустимый параметр")
         }
-
     }
-
 }
 
 fun printStatistics() {
@@ -52,4 +48,46 @@ fun printStatistics() {
 
 }
 
+fun learnWords() {
+
+    println("Для выхода в главное меню введите 0")
+
+    while (true) {
+
+        val listUnlearnedWords =
+            dictionary.filter { it.correctAnswersCount < REQUIRED_COUNT_CORRECT_ANSWER }.toMutableList()
+
+        if (listUnlearnedWords.isEmpty()) {
+            println("Вы выучили все слова")
+            return
+        }
+
+        if (listUnlearnedWords.size < NUMBER_OF_ANSWER_OPTIONS) {
+            val learnedWords = dictionary.filter { it.correctAnswersCount >= REQUIRED_COUNT_CORRECT_ANSWER }
+            val missingWords = learnedWords.shuffled().take(NUMBER_OF_ANSWER_OPTIONS - listUnlearnedWords.size)
+
+            listUnlearnedWords += missingWords
+        }
+
+        val listFourWordToLearn = listUnlearnedWords.shuffled().take(NUMBER_OF_ANSWER_OPTIONS)
+
+        val correctWord = listFourWordToLearn.random()
+        println(correctWord.original)
+
+        listFourWordToLearn.forEachIndexed { index, word ->
+            println("${index + 1} - ${word.translate}")
+        }
+
+        val userChoseAnswer = readln()?.toIntOrNull() ?: println("Введите цифру!")
+        if (userChoseAnswer.equals(0)) break
+
+        val correctWordIndex = listFourWordToLearn.indexOf(correctWord) + 1
+        if (userChoseAnswer == correctWordIndex) {
+            correctWord.correctAnswersCount++
+        }
+    }
+
+}
+
 const val REQUIRED_COUNT_CORRECT_ANSWER = 3
+const val NUMBER_OF_ANSWER_OPTIONS = 4
