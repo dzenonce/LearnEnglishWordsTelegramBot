@@ -73,41 +73,26 @@ fun learnWords() {
             val learnedWords = dictionary.filter { it.correctAnswersCount >= REQUIRED_COUNT_CORRECT_ANSWER }
             val missingWords = learnedWords.shuffled().take(NUMBER_OF_ANSWER_OPTIONS - listUnlearnedWords.size)
 
-            missingWords.forEach { listUnlearnedWords.add(it) }
-
+            listUnlearnedWords += missingWords
         }
 
         val listFourWordToLearn = listUnlearnedWords.shuffled().take(NUMBER_OF_ANSWER_OPTIONS)
 
-        val correctWord = listFourWordToLearn.random().original
-
-        println(correctWord)
-
-        val responseOptionsForIteration: MutableMap<Int, String> = mutableMapOf()
+        val correctWord = listFourWordToLearn.random()
+        println(correctWord.original)
 
         listFourWordToLearn.forEachIndexed { index, word ->
-
-            responseOptionsForIteration.set(
-                index + 1,
-                word.original
-            )
-
             println("${index + 1} - ${word.translate}")
         }
 
         val userChoseAnswer = readln()?.toIntOrNull() ?: println("Введите цифру!")
-
         if (userChoseAnswer.equals(0)) break
 
-        val selectedWord = responseOptionsForIteration.get(userChoseAnswer)
+        val correctWordIndex = listFourWordToLearn.indexOf(correctWord) + 1
 
-        if (correctWord.equals(selectedWord)) {
-            dictionary.forEach {
-                if (it.original.equals(selectedWord)) it.correctAnswersCount++
-            }
-
+        if (userChoseAnswer == correctWordIndex) {
+            correctWord.correctAnswersCount++
         }
-
     }
 
 }
