@@ -1,6 +1,7 @@
 package courcework
 
 import java.net.URI
+import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
@@ -14,8 +15,9 @@ class TelegramBotService(
         return sendHttpRequest(url)
     }
 
-    fun sendMessage(chatId: Int?, text: String?): String {
-        val url = "https://api.telegram.org/bot$botToken/sendMessage?chat_id=$chatId&text=$text"
+    fun sendMessage(chatId: Int?, text: String): String {
+        val encodedText = URLEncoder.encode(text, "UTF-8")
+        val url = "https://api.telegram.org/bot$botToken/sendMessage?chat_id=$chatId&text=$encodedText"
         return sendHttpRequest(url)
     }
 
