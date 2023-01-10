@@ -27,7 +27,7 @@ fun main(args: Array<String>) {
         if (text?.isNotBlank() != null) {
             val sentResult = telegramRequest.sendMessage(
                 chatId,
-                text = text
+                text = decodeUnicode(text)
             )
             println(sentResult)
         }
@@ -38,4 +38,13 @@ fun findRegexQuery(regex: Regex, context: String): String? {
     val matchResult: MatchResult? = regex.find(context)
     val group = matchResult?.groups
     return group?.get(1)?.value
+}
+
+fun decodeUnicode(unicodeMessage: String): String {
+    val regex = Regex("\\\\u([0-9A-Fa-f]{4})")
+
+    return regex.replace(unicodeMessage) {
+        val codePoint = it.groupValues[1].toInt(16)
+        codePoint.toChar().toString()
+    }
 }
