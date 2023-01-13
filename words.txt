@@ -3,7 +3,7 @@ dog|собака|3
 wall|стена|3
 thank you|спасибо|3
 percent|процент|3
-car|машина|1
+car|машина|2
 wolf|волк|3
 good|хорошо|3
 string|строка|3

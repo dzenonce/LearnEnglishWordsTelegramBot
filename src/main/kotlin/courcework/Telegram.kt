@@ -14,7 +14,7 @@ fun main(args: Array<String>) {
             requiredCountCorrectAnswer = 3,
         )
     } catch (e: Exception) {
-        println("Файл не найден")
+        println("Невозможно создать LearnWordsTrainer ${e.message}")
         return
     }
 
@@ -66,7 +66,7 @@ fun main(args: Array<String>) {
                 false ->
                     telegram.sendMessage(
                         chatId = chatId,
-                        text = WRONG_ANSWER + " : ${currentQuestion?.correctWord?.original} - ${currentQuestion?.correctWord?.translate}"
+                        text = "$WRONG_ANSWER : ${currentQuestion?.correctWord?.original} - ${currentQuestion?.correctWord?.translate}"
                     )
             }
             currentQuestion =
