@@ -35,7 +35,7 @@ fun main(args: Array<String>) {
 
         val response: Response = json.decodeFromString(responseString)
         if (response.result.isEmpty()) continue
-        println(response)
+        println(responseString)
         val sortedUpdate = response.result.sortedBy { it.updateId }
         sortedUpdate.forEach {
             handleUpdate(
