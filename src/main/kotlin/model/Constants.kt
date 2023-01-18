@@ -18,3 +18,4 @@ const val TEXT_GET_STATISTICS = "Статистика"
 const val TEXT_RESET_STATISTICS = "Сбросить статистику"
 const val TEXT_COMPLETE_RESET_STATISTICS = "Статистика сброшена"
 const val TEXT_GO_BACK = "Назад"
+const val PAUSE_TELEGRAM_GET_UPDATE = 1500L
