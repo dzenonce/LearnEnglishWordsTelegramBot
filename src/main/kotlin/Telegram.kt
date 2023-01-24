@@ -1,6 +1,7 @@
 import model.serialization.*
 import kotlinx.serialization.json.Json
 import model.*
+import java.io.File
 
 var currentQuestion: Question? = null
 val json = Json { ignoreUnknownKeys = true }
@@ -31,9 +32,9 @@ fun main(args: Array<String>) {
                 println("Get Updates with error: ${e.message}")
                 continue
             }
+        println(response)
 
         if (response.result.isEmpty()) continue
-        println(response)
         val sortedUpdate = response.result.sortedBy { it.updateId }
         sortedUpdate.forEach {
             handleUpdate(
@@ -63,6 +64,7 @@ fun handleUpdate(
     val chatId: Long = update.message?.chat?.id ?: update.callbackQuery?.message?.chat?.id ?: return
     val callbackData: String = update.callbackQuery?.data.toString()
     val callbackQueryId: String = update.callbackQuery?.id.toString()
+    val document: Document? = update.message?.document
 
     val trainer = trainers.getOrPut(chatId) {
         LearnWordsTrainer(
@@ -72,7 +74,17 @@ fun handleUpdate(
         )
     }
 
-    val mainMenuBody = getMainMenu(chatId)
+    if (document != null) {
+        getUserWordsFileAndSave(
+            chatId = chatId,
+            document = document,
+            telegram = telegram,
+
+            )
+        trainer.reloadDictionary()
+    }
+
+    val mainMenuBody = getBodyMainMenu(chatId)
     if (message == "/start")
         try {
             telegram.sendMenu(mainMenuBody)
@@ -96,7 +108,7 @@ fun handleUpdate(
 
         CALLBACK_MENU_STATISTICS_CLICKED -> try {
             telegram.sendMenu(
-                rawMenuBody = getStatisticsMenu(chatId = chatId),
+                rawMenuBody = getBodyStatisticsMenu(chatId = chatId),
             )
             telegram.answerCallbackQuery(callbackQueryId)
         } catch (e: Error) {
@@ -104,20 +116,16 @@ fun handleUpdate(
             return
         }
 
-        CALLBACK_EXIT_MAIN_MENU_CLICKED -> try {
-            telegram.sendMenu(mainMenuBody)
-            telegram.answerCallbackQuery(callbackQueryId)
-        } catch (e: Error) {
-            println("Ошибка при выходе в главное меню: ${e.message}")
-            return
-        }
-
-        CALLBACK_GO_BACK_CLICKED -> try {
-            telegram.sendMenu(mainMenuBody)
-            telegram.answerCallbackQuery(callbackQueryId)
-        } catch (e: Error) {
-            println("Ошибка при нажатии кнопки назад: ${e.message}")
-            return
+        CALLBACK_LOAD_WORDS_FILE_CLICKED -> {
+            try {
+                telegram.sendMenu(
+                    rawMenuBody = getBodyUploadWordsListMenu(chatId)
+                )
+                telegram.answerCallbackQuery(callbackQueryId)
+            } catch (e: Error) {
+                println("Ошибка при отправке меню загрузки файла: ${e.message}")
+                return
+            }
         }
 
         CALLBACK_SHOW_STATISTICS_CLICKED -> try {
@@ -138,6 +146,23 @@ fun handleUpdate(
             println("Ошибка при сбросе статистики: ${e.message}")
             return
         }
+
+        CALLBACK_EXIT_MAIN_MENU_CLICKED -> try {
+            telegram.sendMenu(mainMenuBody)
+            telegram.answerCallbackQuery(callbackQueryId)
+        } catch (e: Error) {
+            println("Ошибка при выходе в главное меню: ${e.message}")
+            return
+        }
+
+        CALLBACK_GO_BACK_CLICKED -> try {
+            telegram.sendMenu(mainMenuBody)
+            telegram.answerCallbackQuery(callbackQueryId)
+        } catch (e: Error) {
+            println("Ошибка при нажатии кнопки назад: ${e.message}")
+            return
+        }
+
     }
 
     if (callbackData.startsWith(CALLBACK_ANSWER_PREFIX)) {
@@ -180,8 +205,8 @@ fun handleUpdate(
     }
 }
 
-fun getStatisticsString(statistics: Statistics) =
-    "Выучено ${statistics.countLearnedWord} из ${statistics.countWords} слов | ${statistics.percentLearnedWord}%"
+fun getStatisticsString(statistics: Statistics?) =
+    "Выучено ${statistics?.countLearnedWord} из ${statistics?.countWords} слов | ${statistics?.percentLearnedWord}%"
 
 fun checkNextQuestionAndSend(
     json: Json,
@@ -207,7 +232,7 @@ fun checkNextQuestionAndSend(
     else {
         try {
             telegram.sendMenu(
-                rawMenuBody = getLearnWordsMenuBody(
+                rawMenuBody = getBodyLearnWordsMenu(
                     chatId = chatId,
                     question = question,
                 )
@@ -218,4 +243,30 @@ fun checkNextQuestionAndSend(
         }
     }
     return question
+}
+
+fun getUserWordsFileAndSave(chatId: Long, document: Document, telegram: TelegramBotService) {
+    val fileResponse =
+        telegram.getFile(
+            getBodyFileRequest(document.fileId)
+        )
+    fileResponse?.response.let { tgFile ->
+        if (File(document.fileName).exists()) {
+            telegram.sendMessage(
+                chatId = chatId,
+                text = TEXT_FILE_ALREADY_EXIST,
+            )
+            return
+        }
+        val file =
+            telegram.downloadFile(tgFile?.filePath)
+        file.copyTo(File(document.fileName).outputStream(), 16 * 1024)
+        telegram.sendMessage(
+            chatId = chatId,
+            text = TEXT_FILE_LOADED_SUCCESSFUL,
+        )
+    }
+    File(document.fileName).readLines().forEach {
+        File("$chatId.txt").appendText("\n$it")
+    }
 }

@@ -2,8 +2,11 @@ package model
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import model.serialization.GetFileRequest
+import model.serialization.GetFileResponse
 import model.serialization.Response
 import model.serialization.SendMessageRequest
+import java.io.InputStream
 import java.net.URI
 import java.net.URLEncoder
 import java.net.http.HttpClient
@@ -15,13 +18,13 @@ class TelegramBotService(
     private val json: Json,
 ) {
 
-    fun getUpdates(updateId: Long?): Response {
+    fun getUpdates(updateId: Long): Response {
         val url = "$API_TELEGRAM_URL$botToken/getUpdates?offset=$updateId"
         val responseHttpRequest = sendHttpRequest(url)
         return json.decodeFromString(responseHttpRequest)
     }
 
-    fun sendMessage(chatId: Long?, text: String): String {
+    fun sendMessage(chatId: Long, text: String): String {
         val encodedText = URLEncoder.encode(text, "UTF-8")
         val url = "$API_TELEGRAM_URL$botToken/sendMessage?chat_id=$chatId&text=$encodedText"
         return sendHttpRequest(url)
@@ -35,11 +38,25 @@ class TelegramBotService(
         )
     }
 
-    fun answerCallbackQuery(callbackQueryId: String, text: String = "", showAlert: Boolean = false): String {
+    fun answerCallbackQuery(callbackQueryId: String? = "", text: String = "", showAlert: Boolean = false): String {
         val encodedText = URLEncoder.encode(text, "UTF-8")
         val url =
             "$API_TELEGRAM_URL$botToken/answerCallbackQuery?callback_query_id=$callbackQueryId&text=$encodedText&show_alert=$showAlert"
         return sendHttpRequest(url)
+    }
+
+    fun getFile(rawFileRequestBody: GetFileRequest): GetFileResponse? {
+        val url = "$API_TELEGRAM_URL$botToken/getFile"
+        val fileResponseString = sendPostHttpRequest(
+            url = url,
+            body = json.encodeToString(rawFileRequestBody)
+        )
+        return json.decodeFromString(fileResponseString)
+    }
+
+    fun downloadFile(filePath: String?): InputStream {
+        val url = "https://api.telegram.org/file/bot$botToken/$filePath"
+        return sendGetHttpRequest(url)
     }
 
     private fun sendHttpRequest(url: String): String {
@@ -61,6 +78,19 @@ class TelegramBotService(
         val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
         return response.body()
     }
+
+    private fun sendGetHttpRequest(url: String): InputStream {
+        val request: HttpRequest = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .GET()
+            .build()
+        val response: HttpResponse<InputStream> = HttpClient.newHttpClient()
+            .send(request, HttpResponse.BodyHandlers.ofInputStream())
+
+        println("Status Code Response: ${response.statusCode()}")
+        return response.body()
+    }
+
 }
 
 private const val API_TELEGRAM_URL = "https://api.telegram.org/bot"
