@@ -30,6 +30,11 @@ class TelegramBotService(
         return sendHttpRequest(url)
     }
 
+    fun deleteMessage(chatId: Long, messageId: Long): String {
+        val url = "$API_TELEGRAM_URL$botToken/deleteMessage?chat_id=$chatId&message_id=$messageId"
+        return sendHttpRequest(url)
+    }
+
     fun sendMenu(rawMenuBody: SendMessageRequest): String {
         val url = "$API_TELEGRAM_URL$botToken/sendMessage"
         return sendPostHttpRequest(
