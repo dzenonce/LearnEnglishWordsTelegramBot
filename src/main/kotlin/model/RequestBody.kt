@@ -105,7 +105,7 @@ fun getBodyUploadWordsListMenu(chatId: Long) =
         )
     )
 
-fun getBodyFileRequest(fileId: String) =
+fun getBodyRequestFileInfo(fileId: String) =
     GetFileRequest(
         fileId = fileId,
     )
