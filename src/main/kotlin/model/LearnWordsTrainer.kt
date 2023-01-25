@@ -20,12 +20,12 @@ data class Question(
 )
 
 class LearnWordsTrainer(
-    var fileName: String = "words.txt",
+    var fileName: String = FILE_SOURCE_WORDS_FILE_NAME,
     private val numberOfCountOption: Int,
     private val requiredCountCorrectAnswer: Int,
 ) {
 
-    private val sourceWordsFile = File("words.txt")
+    private val sourceWordsFile = File(FILE_SOURCE_WORDS_FILE_NAME)
     private var dictionary = loadDictionary()
     private var question: Question? = null
 
