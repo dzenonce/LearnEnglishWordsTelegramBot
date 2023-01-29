@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Response(
     @SerialName("result")
-    val result: List<Update>,
+    val result: List<Update>?,
 )
 
 @Serializable
@@ -110,4 +110,4 @@ data class TelegramFile(
     @SerialName("file_path")
     val filePath: String,
 
-)
+    )

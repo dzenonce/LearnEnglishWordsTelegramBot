@@ -21,13 +21,13 @@ const val TEXT_COMPLETE_RESET_STATISTICS = "Статистика сброшен�
 const val TEXT_GO_BACK = "Назад"
 const val TEXT_UPLOAD_WORDS_FILE = "Загрузить свои слова"
 const val TEXT_SEND_FILE_DESCRIPTION =
-"""
+    """
 Вы можете загрузить свои слова, просто отправьте текстовый файл в чат.
 Формат данных:
 английское слово|перевод|
 """
 const val TEXT_FILE_ALREADY_EXIST = "Файл с таким названием уже существует!"
 const val TEXT_FILE_LOADED_SUCCESSFUL = "Файл успешно загружен!"
-const val PAUSE_TELEGRAM_GET_UPDATE = 1500L
+const val PAUSE_TELEGRAM_GET_UPDATE = 1700L
 const val FILE_TEXT_EXT = ".txt"
 const val FILE_SOURCE_WORDS_FILE_NAME = "words.txt"

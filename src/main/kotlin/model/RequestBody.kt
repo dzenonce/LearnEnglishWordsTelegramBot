@@ -1,6 +1,9 @@
 package model
 
-import model.serialization.*
+import model.serialization.GetFileRequest
+import model.serialization.InlineKeyboard
+import model.serialization.ReplyMarkup
+import model.serialization.SendMessageRequest
 
 fun getBodyMainMenu(chatId: Long) =
     SendMessageRequest(
