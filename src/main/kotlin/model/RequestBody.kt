@@ -1,10 +1,11 @@
 package model
 
+import model.serialization.GetFileRequest
 import model.serialization.InlineKeyboard
 import model.serialization.ReplyMarkup
 import model.serialization.SendMessageRequest
 
-fun getMainMenu(chatId: Long) =
+fun getBodyMainMenu(chatId: Long) =
     SendMessageRequest(
         chatId = chatId,
         text = TEXT_MAIN_MENU,
@@ -23,11 +24,17 @@ fun getMainMenu(chatId: Long) =
                         callbackData = CALLBACK_MENU_STATISTICS_CLICKED,
                     )
                 ),
+                listOf(
+                    InlineKeyboard(
+                        text = TEXT_UPLOAD_WORDS_FILE,
+                        callbackData = CALLBACK_LOAD_WORDS_FILE_CLICKED,
+                    )
+                )
             )
         )
     )
 
-fun getStatisticsMenu(chatId: Long) =
+fun getBodyStatisticsMenu(chatId: Long) =
     SendMessageRequest(
         chatId = chatId,
         text = TEXT_DESCRIPTION_STATISTICS_MENU,
@@ -55,7 +62,7 @@ fun getStatisticsMenu(chatId: Long) =
         )
     )
 
-fun getLearnWordsMenuBody(chatId: Long, question: Question): SendMessageRequest {
+fun getBodyLearnWordsMenu(chatId: Long, question: Question): SendMessageRequest {
 
     val wordsList =
         question.fourUnlearnedWords.mapIndexed { index, word ->
@@ -84,3 +91,24 @@ fun getLearnWordsMenuBody(chatId: Long, question: Question): SendMessageRequest 
         )
     )
 }
+
+fun getBodyUploadWordsListMenu(chatId: Long) =
+    SendMessageRequest(
+        chatId = chatId,
+        text = TEXT_SEND_FILE_DESCRIPTION,
+        replyMarkup = ReplyMarkup(
+            listOf(
+                listOf(
+                    InlineKeyboard(
+                        text = TEXT_GO_BACK,
+                        callbackData = CALLBACK_GO_BACK_CLICKED,
+                    )
+                )
+            )
+        )
+    )
+
+fun getBodyRequestFileInfo(fileId: String) =
+    GetFileRequest(
+        fileId = fileId,
+    )
