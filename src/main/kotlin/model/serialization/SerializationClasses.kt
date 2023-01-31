@@ -12,7 +12,7 @@ data class Response(
 @Serializable
 data class Update(
     @SerialName("update_id")
-    val updateId: Long,
+    val updateId: Long?,
     @SerialName("message")
     val message: Message? = null,
     @SerialName("callback_query")
@@ -109,5 +109,4 @@ data class TelegramFile(
     val fileSize: Long,
     @SerialName("file_path")
     val filePath: String,
-
-    )
+)

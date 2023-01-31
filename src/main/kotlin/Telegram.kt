@@ -60,7 +60,7 @@ fun handleUpdate(
     val callbackData: String = update.callbackQuery?.data.toString()
     val callbackQueryId: String = update.callbackQuery?.id.toString()
     val document: Document? = update.message?.document
-    val messageId: Long = update.message?.messageId ?: 0
+    val messageId: Long = update.message?.messageId ?: 0L
 
     val trainer = trainers.getOrPut(chatId) {
         LearnWordsTrainer(
@@ -101,14 +101,16 @@ fun handleUpdate(
 
         CALLBACK_MENU_STATISTICS_CLICKED -> {
             telegram.sendMenu(
-                rawMenuBody = getBodyStatisticsMenu(chatId = chatId),
+                rawMessageBody = getBodyStatisticsMenu(
+                    chatId = chatId,
+                ),
             )
             telegram.answerCallbackQuery(callbackQueryId)
         }
 
         CALLBACK_LOAD_WORDS_FILE_CLICKED -> {
             telegram.sendMenu(
-                rawMenuBody = getBodyUploadWordsListMenu(chatId)
+                rawMessageBody = getBodyUploadWordsListMenu(chatId)
             )
             telegram.answerCallbackQuery(callbackQueryId)
         }
@@ -185,7 +187,7 @@ fun checkNextQuestionAndSend(
         )
     else {
         telegram.sendMenu(
-            rawMenuBody = getBodyLearnWordsMenu(
+            rawMessageBody = getBodyLearnWordsMenu(
                 chatId = chatId,
                 question = question,
             )
