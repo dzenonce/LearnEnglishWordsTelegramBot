@@ -213,17 +213,15 @@ fun getUserWordsFileAndSave(chatId: Long, document: Document, telegram: Telegram
         }
         val file =
             telegram.downloadFile(tgFile?.filePath)
-        val userCustomFileOutputStream = userCustomTempFile.outputStream()
-        file?.copyTo(userCustomFileOutputStream, 16 * 1024)
+        userCustomTempFile.outputStream().use { outputStream ->
+            file?.use { inputStream ->
+                inputStream.copyTo(outputStream, 16 * 1024)
+            }
+        }
         telegram.sendMessage(
             chatId = chatId,
             text = TEXT_FILE_LOADED_SUCCESSFUL,
         )
-        try {
-            userCustomFileOutputStream.close()
-        } catch (e: Error) {
-            println("Не удалось закрыть OutputStream в getUserWordsFileAndSave ${e.message}")
-        }
     }
     userCustomTempFile.readLines()
         .forEach { File("$chatId$FILE_TEXT_EXT").appendText("\n$it") }

@@ -29,8 +29,8 @@ class LearnWordsTrainer(
     private var dictionary = loadDictionary()
     private var question: Question? = null
 
-    fun getStatistics(): Statistics? {
-        if (dictionary.size == 0) return null
+    fun getStatistics(): Statistics {
+        if (dictionary.size == 0) return Statistics(0,0,0,)
         val countWord = dictionary.size
         val countLearnedWord = dictionary.filter { it.correctAnswersCount >= requiredCountCorrectAnswer }.size
         val percentLearnedWord = countLearnedWord * ONE_HUNDRED_PERCENT / countWord
@@ -123,9 +123,9 @@ class LearnWordsTrainer(
 
     private fun removeDuplicatesFromFile() {
         val file = File(fileName)
-        val a = file.readLines().toSet()
+        val dictionaryWithoutDuplicates = file.readLines().toSet()
         file.writeText("")
-        a.forEach { file.appendText("$it\n") }
+        dictionaryWithoutDuplicates.forEach { file.appendText("$it\n") }
     }
 
 }
