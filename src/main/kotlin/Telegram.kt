@@ -55,8 +55,8 @@ fun handleUpdate(
         json = json,
     )
 
-    val message: String = update.message?.text.toString()
     val chatId: Long = update.message?.chat?.id ?: update.callbackQuery?.message?.chat?.id ?: return
+    val message: String = update.message?.text.toString()
     val callbackData: String = update.callbackQuery?.data.toString()
     val callbackQueryId: String = update.callbackQuery?.id.toString()
     val document: Document? = update.message?.document
