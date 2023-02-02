@@ -47,7 +47,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
+          username: ${{ secrets.SSH_ROOT_USER }}
+          password: ${{ secrets.SSH_ROOT_PASSWORD }}
           script: |
             systemctl restart english-learning-bot
