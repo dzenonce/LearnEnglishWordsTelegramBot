@@ -1,15 +1,20 @@
 import kotlinx.serialization.json.Json
-import model.*
-import model.serialization.Document
-import model.serialization.Response
-import model.serialization.Update
+import model.api.TelegramBotService
+import model.constants.*
+import model.database.DatabaseControl
+import model.database.DatabaseUserDictionary
+import model.database.User
+import model.handling.query.*
+import model.trainer.LearnWordsTrainer
+import model.trainer.Question
+import model.trainer.Statistics
 import java.io.File
 
 var currentQuestion: Question? = null
 val json = Json { ignoreUnknownKeys = true }
 
 fun main(args: Array<String>) {
-    println("Bot is running")
+    println("[+] bot is running...")
 
     val botToken = args[0]
     val telegram = TelegramBotService(
@@ -17,10 +22,14 @@ fun main(args: Array<String>) {
         json = json,
     )
 
+    DatabaseControl().initDatabase()
+    DatabaseControl().loadStandardWords(TEXT_STANDARD_WORDS_FILE_NAME)
+
     val trainers = try {
         HashMap<Long, LearnWordsTrainer>()
+
     } catch (e: Error) {
-        println("Невозможно создать экземпляры hashMap trainers ${e.message}")
+        println("[-] trainers initialized failed: ${e.message}")
         return
     }
 
@@ -61,12 +70,14 @@ fun handleUpdate(
     val callbackQueryId: String = update.callbackQuery?.id.toString()
     val document: Document? = update.message?.document
     val messageId: Long = update.message?.messageId ?: 0L
+    val username: String = update.message?.chat?.username ?: "<не указан>"
+    val date: Long = update.message?.date ?: 0L
 
     val trainer = trainers.getOrPut(chatId) {
         LearnWordsTrainer(
-            fileName = "$chatId$FILE_TEXT_EXT",
-            numberOfCountOption = 4,
-            requiredCountCorrectAnswer = 3,
+            userId = chatId,
+            countWordsForLearning = QUANTITY_WORDS_FOR_LEARNING,
+            minimalQuantityCorrectAnswer = QUANTITY_MINIMAL_CORRECT_ANSWER,
         )
     }
 
@@ -76,7 +87,7 @@ fun handleUpdate(
             document = document,
             telegram = telegram,
         )
-        trainer.reloadDictionary()
+//        trainer.reloadDictionary()
         telegram.deleteMessage(
             chatId = chatId,
             messageId = messageId
@@ -84,7 +95,18 @@ fun handleUpdate(
     }
 
     val mainMenuBody = getBodyMainMenu(chatId)
-    if (message == "/start") telegram.sendMenu(mainMenuBody)
+    if (message == "/start") {
+        DatabaseControl().addNewUser(
+            User(
+                id = chatId,
+                chatId = chatId,
+                username = username,
+                createdAt = date,
+            )
+        )
+        telegram.sendMenu(mainMenuBody)
+
+    }
 
     when (callbackData.lowercase()) {
         CALLBACK_LEARN_WORDS_CLICKED -> {
@@ -124,7 +146,7 @@ fun handleUpdate(
         }
 
         CALLBACK_RESET_STATISTICS_CLICKED -> {
-            trainer.resetProgress()
+            trainer.resetUserProgress()
             telegram.answerCallbackQuery(callbackQueryId, text = TEXT_COMPLETE_RESET_STATISTICS)
         }
 
@@ -151,7 +173,8 @@ fun handleUpdate(
 
             false -> telegram.sendMessage(
                 chatId = chatId,
-                text = "$TEXT_ANSWER_WRONG : ${currentQuestion?.correctWord?.original} - ${currentQuestion?.correctWord?.translate}"
+                text =
+                "$TEXT_ANSWER_WRONG : ${currentQuestion?.correctWord?.original} - ${currentQuestion?.correctWord?.translate}"
             )
         }
         currentQuestion =
@@ -211,10 +234,10 @@ fun getUserWordsFileAndSave(chatId: Long, document: Document, telegram: Telegram
             )
             return
         }
-        val file =
+        val userFile =
             telegram.downloadFile(tgFile?.filePath)
         userCustomTempFile.outputStream().use { outputStream ->
-            file?.use { inputStream ->
+            userFile?.use { inputStream ->
                 inputStream.copyTo(outputStream, 16 * 1024)
             }
         }
@@ -224,6 +247,6 @@ fun getUserWordsFileAndSave(chatId: Long, document: Document, telegram: Telegram
         )
     }
     userCustomTempFile.readLines()
-        .forEach { File("$chatId$FILE_TEXT_EXT").appendText("\n$it") }
+        .forEach { File("$chatId$TEXT_FILE_EXT").appendText("\n$it") }
     userCustomTempFile.delete()
 }

@@ -1,11 +1,11 @@
-package model
+package model.api
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import model.serialization.GetFileRequest
-import model.serialization.GetFileResponse
-import model.serialization.Response
-import model.serialization.SendMessageRequest
+import model.handling.query.GetFileRequest
+import model.handling.query.GetFileResponse
+import model.handling.query.Response
+import model.handling.query.SendMessageRequest
 import java.io.InputStream
 import java.net.URI
 import java.net.URLEncoder

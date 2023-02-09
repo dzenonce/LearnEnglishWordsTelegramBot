@@ -1,4 +1,4 @@
-package model.serialization
+package model.handling.query
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -25,6 +25,8 @@ data class Message(
     val messageId: Long,
     @SerialName("text")
     val text: String? = null,
+    @SerialName("date")
+    val date: Long,
     @SerialName("chat")
     val chat: Chat,
     @SerialName("document")
@@ -35,6 +37,8 @@ data class Message(
 data class Chat(
     @SerialName("id")
     val id: Long,
+    @SerialName("username")
+    val username: String? = null,
 )
 
 @Serializable
