@@ -66,7 +66,7 @@ class LearnWordsTrainer(
         )
         return question
     }
-// TODO обратить внимание на декремент изначально был инкремент
+
     fun checkAnswer(userChoseAnswer: Int?): Boolean {
         return question?.let { question ->
             val correctAnswerId = question.fourUnlearnedWords.indexOf(question.correctWord)

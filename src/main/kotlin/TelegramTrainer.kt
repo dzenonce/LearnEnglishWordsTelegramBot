@@ -98,7 +98,6 @@ fun handleUpdate(
     if (message == "/start") {
         DatabaseControl().addNewUser(
             User(
-                id = chatId,
                 chatId = chatId,
                 username = username,
                 createdAt = date,

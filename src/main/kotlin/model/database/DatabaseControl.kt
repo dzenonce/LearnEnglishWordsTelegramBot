@@ -14,20 +14,20 @@ class DatabaseControl : IDatabaseControl {
 
             statement.executeUpdate(
                 """
-                $SQL_CREATE_TABLE_IF_NOT_EXISTS "$TABLE_USERS" (
-                    "$COLUMN_ID" $SQL_INTEGER $SQL_PRIMARY_KEY $SQL_UNIQUE,
-                    "$COLUMN_USERNAME" $SQL_VARCHAR,
-                    "$COLUMN_CREATED_AT" $SQL_TIMESTAMP,
-                    "$COLUMN_CHAT_ID" $SQL_INTEGER
+                CREATE TABLE IF NOT EXISTS "users" (
+                    "id" integer PRIMARY KEY,
+                    "username" varchar,
+                    "created_at" timestamp,
+                    "chat_id" integer UNIQUE
                 );
                 """.trimIndent()
             )
             statement.executeUpdate(
                 """
-                $SQL_CREATE_TABLE_IF_NOT_EXISTS "$TABLE_WORDS" (
-                    "$COLUMN_ID" $SQL_INTEGER $SQL_PRIMARY_KEY,
-                    "$COLUMN_ORIGINAL" $SQL_VARCHAR $SQL_UNIQUE,
-                    "$COLUMN_TRANSLATE" $SQL_VARCHAR
+                CREATE TABLE IF NOT EXISTS "words" (
+                    "id" integer PRIMARY KEY,
+                    "original" varchar UNIQUE,
+                    "translate" varchar
                 );
                 """.trimIndent()
             )
@@ -37,10 +37,9 @@ class DatabaseControl : IDatabaseControl {
                     "user_id" integer,
                     "word_id" varchar,
                     "correct_answer_count" varchar,
-                    "updated_at" integer,
+                    "updated_at" timestamp,
                     FOREIGN KEY (user_id) REFERENCES users(id),
                     FOREIGN KEY (word_id) REFERENCES words(id)
-
                 );
                 """.trimIndent()
             )
@@ -53,12 +52,11 @@ class DatabaseControl : IDatabaseControl {
             val statement: Statement = connection.createStatement()
             statement.queryTimeout = SQL_TIMEOUT_QUERY
 
-            var i = 0
             File(standardWordsFileName).forEachLine { fileString ->
                 val lines = fileString.split("|")
                 if (lines.size < 3) return@forEachLine
                 statement.executeUpdate(
-                    "$SQL_INSERT_OR_IGNORE_INTO $TABLE_WORDS $SQL_VALUES(${i++}, '${lines[0]}', '${lines[1]}')"
+                    "INSERT OR IGNORE INTO words(original, translate) values('${lines[0]}', '${lines[1]}')"
                 )
             }
         }
@@ -71,15 +69,13 @@ class DatabaseControl : IDatabaseControl {
             statement.queryTimeout = SQL_TIMEOUT_QUERY
             statement.executeUpdate(
                 """
-                    $SQL_INSERT_OR_IGNORE_INTO $TABLE_USERS $SQL_VALUES(
-                        ${user.id},                          
+                    INSERT OR IGNORE INTO users(username, created_at, chat_id) $SQL_VALUES(                         
                         '${user.username}',
-                        ${user.createdAt},
+                        CURRENT_TIMESTAMP,
                         ${user.chatId}
                     )
                 """.trimIndent()
             )
         }
-        println("[+] user added") // TODO убрать
     }
 }
