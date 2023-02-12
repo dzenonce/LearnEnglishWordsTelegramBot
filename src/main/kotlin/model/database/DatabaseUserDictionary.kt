@@ -67,7 +67,7 @@ class DatabaseUserDictionary(
                     Word(
                         original = resultGetWords.getString("original"),
                         translate = resultGetWords.getString("translate"),
-                        correctAnswersCount = learnedWord.value
+//                        correctAnswersCount = learnedWord.value
                     )
                 )
             }
@@ -81,16 +81,20 @@ class DatabaseUserDictionary(
             statement.queryTimeout = SQL_TIMEOUT_QUERY
             val resultGetWords =
                 statement.executeQuery("SELECT * FROM words;")
-            val listWords: MutableList<Word> = mutableListOf()
+            val listAllWords: MutableList<Word> = mutableListOf()
             while (resultGetWords.next()) {
-                listWords.add(
+                listAllWords.add(
                     Word(
                         original = resultGetWords.getString("original"),
                         translate = resultGetWords.getString("translate"),
                     )
                 )
             }
-            return listWords
+            val learnedWords = getLearnedWords()
+            println("Before $listAllWords")
+            listAllWords.minusAssign(learnedWords)
+            println("After $listAllWords")
+            return listAllWords
         }
     }
 
