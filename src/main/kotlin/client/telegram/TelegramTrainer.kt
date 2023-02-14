@@ -4,8 +4,8 @@ import client.telegram.ui.*
 import kotlinx.serialization.json.Json
 import server.data.TelegramBotService
 import constants.*
-import database.mysql.DatabaseControl
-import database.mysql.DatabaseUserDictionary
+import database.sqlite.DatabaseControl
+import database.sqlite.DatabaseUserDictionary
 import model.Question
 import model.Statistics
 import model.User

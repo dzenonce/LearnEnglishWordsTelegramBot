@@ -1,4 +1,4 @@
-package database.mysql
+package database.sqlite
 
 import constants.DATABASE_CONNECT_URL
 import constants.SQL_TIMEOUT_QUERY
