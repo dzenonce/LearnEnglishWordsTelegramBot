@@ -1,13 +1,18 @@
+package client.telegram
+
+import client.telegram.ui.*
 import kotlinx.serialization.json.Json
-import model.api.TelegramBotService
-import model.constants.*
-import model.database.DatabaseControl
-import model.database.DatabaseUserDictionary
-import model.database.User
-import model.handling.query.*
-import model.trainer.LearnWordsTrainer
-import model.trainer.Question
-import model.trainer.Statistics
+import server.data.TelegramBotService
+import constants.*
+import database.mysql.DatabaseControl
+import database.mysql.DatabaseUserDictionary
+import model.Question
+import model.Statistics
+import model.User
+import server.serialization.Document
+import server.serialization.Response
+import server.serialization.Update
+import server.trainer.LearnWordsTrainer
 import java.io.File
 
 var currentQuestion: Question? = null
@@ -27,7 +32,6 @@ fun main(args: Array<String>) {
 
     val trainers = try {
         HashMap<Long, LearnWordsTrainer>()
-
     } catch (e: Error) {
         println("[-] trainers initialized failed: ${e.message}")
         return
@@ -75,19 +79,22 @@ fun handleUpdate(
 
     val trainer = trainers.getOrPut(chatId) {
         LearnWordsTrainer(
-            userId = chatId,
             countWordsForLearning = QUANTITY_WORDS_FOR_LEARNING,
-            minimalQuantityCorrectAnswer = QUANTITY_MINIMAL_CORRECT_ANSWER,
+            userDictionary = DatabaseUserDictionary(
+                userId = chatId,
+                minimalQuantityCorrectAnswer = QUANTITY_MINIMAL_CORRECT_ANSWER
+            )
         )
     }
 
     if (document != null) {
-        getUserWordsFileAndSave(
-            chatId = chatId,
-            document = document,
-            telegram = telegram,
-        )
-//        trainer.reloadDictionary()
+        val rawWordsSet =
+            getUserWordsFileAndSave(
+                chatId = chatId,
+                document = document,
+                telegram = telegram,
+            )
+        trainer.loadCustomWordsFile(rawWordsSet)
         telegram.deleteMessage(
             chatId = chatId,
             messageId = messageId
@@ -219,7 +226,7 @@ fun checkNextQuestionAndSend(
     return question
 }
 
-fun getUserWordsFileAndSave(chatId: Long, document: Document, telegram: TelegramBotService) {
+fun getUserWordsFileAndSave(chatId: Long, document: Document, telegram: TelegramBotService): Set<String> {
     val userCustomTempFile = File("$chatId${document.fileName}")
 
     val fileResponse = telegram.getFileInfo(
@@ -231,7 +238,7 @@ fun getUserWordsFileAndSave(chatId: Long, document: Document, telegram: Telegram
                 chatId = chatId,
                 text = TEXT_FILE_ALREADY_EXIST,
             )
-            return
+            return setOf()
         }
         val userFile =
             telegram.downloadFile(tgFile?.filePath)
@@ -245,7 +252,7 @@ fun getUserWordsFileAndSave(chatId: Long, document: Document, telegram: Telegram
             text = TEXT_FILE_LOADED_SUCCESSFUL,
         )
     }
-    userCustomTempFile.readLines()
-        .forEach { File("$chatId$TEXT_FILE_EXT").appendText("\n$it") }
+    val rawWordsSet: Set<String> = userCustomTempFile.readLines().toSet()
     userCustomTempFile.delete()
+    return rawWordsSet
 }

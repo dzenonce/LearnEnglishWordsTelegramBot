@@ -1,8 +1,9 @@
-package model
+package client.console
 
-import model.trainer.LearnWordsTrainer
-import model.trainer.Question
-import model.trainer.Word
+import database.file.FileUserDictionary
+import model.Question
+import model.Word
+import server.trainer.LearnWordsTrainer
 
 fun Question.asConsoleString(): String {
     val questionVariant =
@@ -17,9 +18,8 @@ fun main() {
 
     val trainer = try {
         LearnWordsTrainer(
-            userId = 0,
             countWordsForLearning = 4,
-            minimalQuantityCorrectAnswer = 3,
+            userDictionary = FileUserDictionary(),
         )
     } catch (e: Exception) {
         println("Некорректный файл")
