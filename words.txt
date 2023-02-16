@@ -5,7 +5,7 @@ thank you|спасибо|0
 percent|процент|0
 car|машина|0
 wolf|волк|0
-good|хорошо|0
+good|хорошо|1
 string|строка|0
-apple|яблоко|0
-bed|кровать|0
+apple|яблоко|1
+bed|кровать|1

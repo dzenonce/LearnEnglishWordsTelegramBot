@@ -1,9 +1,11 @@
-package model
+package client.telegram.ui
 
-import model.serialization.GetFileRequest
-import model.serialization.InlineKeyboard
-import model.serialization.ReplyMarkup
-import model.serialization.SendMessageRequest
+import constants.*
+import model.Question
+import server.serialization.GetFileRequest
+import server.serialization.InlineKeyboard
+import server.serialization.ReplyMarkup
+import server.serialization.SendMessageRequest
 
 fun getBodyMainMenu(chatId: Long) =
     SendMessageRequest(

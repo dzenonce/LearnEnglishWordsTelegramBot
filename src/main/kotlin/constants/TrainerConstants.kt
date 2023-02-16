@@ -1,0 +1,5 @@
+package constants
+
+const val DEFAULT_VALUE_ANSWER_COUNT = 0
+const val QUANTITY_WORDS_FOR_LEARNING = 4
+const val QUANTITY_MINIMAL_CORRECT_ANSWER = 3
