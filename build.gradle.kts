@@ -27,5 +27,5 @@ kotlin {
 }
 
 application {
-    mainClass.set("TelegramKt")
+    mainClass.set("client.telegram.TelegramTrainerKt")
 }

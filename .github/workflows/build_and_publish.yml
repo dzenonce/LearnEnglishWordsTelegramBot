@@ -29,19 +29,19 @@ jobs:
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
+          username: ${{ secrets.SSH_ROOT_USER }}
+          password: ${{ secrets.SSH_ROOT_PASSWORD }}
           source: bot.jar
-          target: /home/englishbot/prod
+          target: /root
 
       - name: Deploy words.txt to VPS
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
+          username: ${{ secrets.SSH_ROOT_USER }}
+          password: ${{ secrets.SSH_ROOT_PASSWORD }}
           source: words.txt
-          target: /home/englishbot/prod
+          target: /root
 
       - name: Restart Remote Service
         uses: appleboy/ssh-action@master
