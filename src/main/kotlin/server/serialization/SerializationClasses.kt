@@ -10,6 +10,20 @@ data class Response(
 )
 
 @Serializable
+data class BotResponse(
+    @SerialName("result")
+    val result: BotResult? = null,
+)
+
+@Serializable
+data class BotResult(
+    @SerialName("message_id")
+    val botMessageId: Long?,
+    @SerialName("chat")
+    val chat: Chat? = null,
+)
+
+@Serializable
 data class Update(
     @SerialName("update_id")
     val updateId: Long?,

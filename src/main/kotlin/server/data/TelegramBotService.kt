@@ -1,12 +1,10 @@
 package server.data
 
 import constants.API_TELEGRAM_URL
+import database.sqlite.DatabaseControl
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import server.serialization.GetFileRequest
-import server.serialization.GetFileResponse
-import server.serialization.Response
-import server.serialization.SendMessageRequest
+import server.serialization.*
 import java.io.InputStream
 import java.net.URI
 import java.net.URLEncoder
@@ -22,14 +20,8 @@ class TelegramBotService(
     fun getUpdates(updateId: Long): Response? {
         val url = "$API_TELEGRAM_URL$botToken/getUpdates?offset=$updateId"
         val responseHttpRequest = sendHttpRequest(url)
-        println(responseHttpRequest)
+        println("ResponseUpdate $responseHttpRequest")
         return responseHttpRequest?.let { json.decodeFromString(it) }
-    }
-
-    fun sendMessage(chatId: Long, text: String): String? {
-        val encodedText = URLEncoder.encode(text, "UTF-8")
-        val url = "$API_TELEGRAM_URL$botToken/sendMessage?chat_id=$chatId&text=$encodedText"
-        return sendHttpRequest(url)
     }
 
     fun deleteMessage(chatId: Long, messageId: Long): String? {
@@ -37,12 +29,51 @@ class TelegramBotService(
         return sendHttpRequest(url)
     }
 
-    fun sendMenu(rawMessageBody: SendMessageRequest): String? {
-        val url = "$API_TELEGRAM_URL$botToken/sendMessage"
-        return sendPostHttpRequest(
+    fun editMessage(chatId: Long, rawMessageBody: SendMessageRequest): BotResponse? {
+        val lastBotMessageId = DatabaseControl().getLastBotMessageId(chatId)
+        val url = "$API_TELEGRAM_URL$botToken/editMessageText?message_id=$lastBotMessageId"
+        val response: BotResponse? = sendPostHttpRequest(
             url = url,
             body = json.encodeToString(rawMessageBody)
-        )
+        )?.let { json.decodeFromString(it) }
+
+        response.let { botResponse ->
+            DatabaseControl().saveLastBotMessageId(
+                chatId = botResponse?.result?.chat?.id,
+                lastBotId = botResponse?.result?.botMessageId
+            )
+        }
+        return response
+    }
+
+    fun sendMessage(chatId: Long, text: String): BotResponse? {
+        val encodedText = URLEncoder.encode(text, "UTF-8")
+        val url = "$API_TELEGRAM_URL$botToken/sendMessage?chat_id=$chatId&text=$encodedText"
+        val response: BotResponse? = sendHttpRequest(url)?.let { json.decodeFromString(it) }
+
+        response.let { botResponse ->
+            DatabaseControl().saveLastBotMessageId(
+                chatId = botResponse?.result?.chat?.id,
+                lastBotId = botResponse?.result?.botMessageId
+            )
+        }
+        return response
+    }
+
+    fun sendMenu(rawMessageBody: SendMessageRequest): BotResponse? {
+        val url = "$API_TELEGRAM_URL$botToken/sendMessage"
+        val response: BotResponse? = sendPostHttpRequest(
+            url = url,
+            body = json.encodeToString(rawMessageBody)
+        )?.let { json.decodeFromString(it) }
+
+        response.let { botResponse ->
+            DatabaseControl().saveLastBotMessageId(
+                chatId = botResponse?.result?.chat?.id,
+                lastBotId = botResponse?.result?.botMessageId
+            )
+        }
+        return response
     }
 
     fun answerCallbackQuery(callbackQueryId: String? = "", text: String = "", showAlert: Boolean = false): String? {
@@ -66,6 +97,7 @@ class TelegramBotService(
         return sendGetHttpRequest(url)
     }
 
+    // TODO Кажется эти запросы могут быть в отдельном файле как интерфейс
     private fun sendHttpRequest(url: String): String? {
         val client: HttpClient = HttpClient.newBuilder().build()
         val request: HttpRequest = HttpRequest.newBuilder()
