@@ -2,12 +2,12 @@ package database.sqlite
 
 import constants.DATABASE_CONNECT_URL
 import constants.SQL_TIMEOUT_QUERY
-import database.interfaces.IDatabaseControl
+import interfaces.database.IDatabaseControl
 import model.User
 import java.io.File
 import java.sql.DriverManager
 
-class DatabaseControl : IDatabaseControl {
+class SqliteDatabaseControl : IDatabaseControl {
 
     override fun initDatabase() {
         DriverManager.getConnection(DATABASE_CONNECT_URL)
@@ -97,7 +97,7 @@ class DatabaseControl : IDatabaseControl {
             }
     }
 
-    fun createCustomWordsTable(userId: Long) {
+    override fun createCustomWordsTable(userId: Long) {
         DriverManager.getConnection(DATABASE_CONNECT_URL)
             .use { connection ->
                 connection.createStatement()
@@ -116,7 +116,7 @@ class DatabaseControl : IDatabaseControl {
             }
     }
 
-    fun saveLastBotMessageId(chatId: Long?, lastBotId: Long?) {
+    override fun saveLastBotMessageId(chatId: Long, lastBotId: Long) {
         DriverManager.getConnection(DATABASE_CONNECT_URL)
             .use { connection ->
                 connection.createStatement()
@@ -133,7 +133,7 @@ class DatabaseControl : IDatabaseControl {
             }
     }
 
-    fun saveResultBotMessageId(chatId: Long?, resultBotId: Long?) {
+    override fun saveResultBotMessageId(chatId: Long, resultBotId: Long) {
         DriverManager.getConnection(DATABASE_CONNECT_URL)
             .use { connection ->
                 connection.createStatement()
@@ -150,7 +150,7 @@ class DatabaseControl : IDatabaseControl {
             }
     }
 
-    fun getLastBotMessageId(chatId: Long): Long {
+    override fun getLastBotMessageId(chatId: Long): Long {
         DriverManager.getConnection(DATABASE_CONNECT_URL)
             .use { connection ->
                 connection.createStatement()
@@ -166,7 +166,7 @@ class DatabaseControl : IDatabaseControl {
             }
     }
 
-    fun getResultBotMessageId(chatId: Long): Long {
+    override fun getResultBotMessageId(chatId: Long): Long {
         DriverManager.getConnection(DATABASE_CONNECT_URL)
             .use { connection ->
                 connection.createStatement()
@@ -182,7 +182,7 @@ class DatabaseControl : IDatabaseControl {
             }
     }
 
-    fun resetResultMessageId(chatId: Long) {
+    override fun resetResultMessageId(chatId: Long) {
         DriverManager.getConnection(DATABASE_CONNECT_URL)
             .use { connection ->
                 connection.createStatement()

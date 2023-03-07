@@ -1,6 +1,6 @@
 package server.trainer
 
-import database.interfaces.IUserDictionary
+import interfaces.database.IUserDictionary
 import model.Question
 import model.Statistics
 

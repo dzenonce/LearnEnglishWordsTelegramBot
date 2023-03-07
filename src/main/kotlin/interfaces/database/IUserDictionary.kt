@@ -1,4 +1,4 @@
-package database.interfaces
+package interfaces.database
 
 import model.Word
 
