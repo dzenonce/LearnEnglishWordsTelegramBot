@@ -2,9 +2,9 @@ package client.telegram
 
 import client.telegram.ui.*
 import constants.*
-import interfaces.database.IDatabaseControl
 import database.sqlite.SqliteDatabaseControl
 import database.sqlite.SqliteDatabaseUserDictionary
+import interfaces.database.IDatabaseControl
 import kotlinx.serialization.json.Json
 import model.Question
 import model.User
@@ -247,6 +247,7 @@ fun checkNextQuestionAndSend(
     callbackQueryId: String,
 ): Question? {
     val question: Question? = trainer.getNextQuestion()
+
     if (question == null)
         telegram.editMessage(
             chatId = chatId,
@@ -273,6 +274,7 @@ fun checkNextQuestionAndSend(
                     question = question,
                 )
             )?.saveLastBotMessageIdToDatabase()
+
         telegram.handleCallbackQuery(callbackQueryId)
     }
     return question
@@ -302,11 +304,13 @@ fun getUserWordsFileAndSave(
         }
         val userFile =
             telegram.downloadFile(tgFile?.filePath)
-        userCustomTempFile.outputStream().use { outputStream ->
-            userFile?.use { inputStream ->
-                inputStream.copyTo(outputStream, 16 * 1024)
+        userCustomTempFile.outputStream()
+            .use { outputStream ->
+                userFile
+                    ?.use { inputStream ->
+                        inputStream.copyTo(outputStream, 16 * 1024)
+                    }
             }
-        }
         telegram.editMessage(
             chatId = chatId,
             messageIdToEdit = databaseControl.getLastBotMessageId(chatId),
