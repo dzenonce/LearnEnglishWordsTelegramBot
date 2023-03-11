@@ -2,6 +2,7 @@ package client.telegram.ui
 
 import constants.*
 import model.Question
+import model.Statistics
 import server.serialization.GetFileRequest
 import server.serialization.InlineKeyboard
 import server.serialization.ReplyMarkup
@@ -56,8 +57,8 @@ fun getBodyStatisticsMenu(chatId: Long) =
                 ),
                 listOf(
                     InlineKeyboard(
-                        text = TEXT_GO_BACK,
-                        callbackData = CALLBACK_GO_BACK_CLICKED,
+                        text = TEXT_MAIN_MENU,
+                        callbackData = CALLBACK_EXIT_MAIN_MENU_CLICKED,
                     )
                 )
             )
@@ -80,7 +81,7 @@ fun getBodyLearnWordsMenu(chatId: Long, question: Question): SendMessageRequest 
         listOf(
             InlineKeyboard(
                 text = TEXT_MAIN_MENU,
-                callbackData = CALLBACK_EXIT_MAIN_MENU_CLICKED,
+                callbackData = CALLBACK_EXIT_MAIN_MENU_FROM_WORDS_CLICKED,
             )
         )
     wordsList.add(exitMainMenuButton)
@@ -113,4 +114,61 @@ fun getBodyUploadWordsListMenu(chatId: Long) =
 fun getBodyRequestFileInfo(fileId: String) =
     GetFileRequest(
         fileId = fileId,
+    )
+
+fun getBodyResultAnswer(chatId: Long, resultAnswer: String) =
+    SendMessageRequest(
+        chatId = chatId,
+        text = resultAnswer,
+    )
+
+fun getBodyAllWordsLearned(chatId: Long, allWorldsLearned: String) =
+    SendMessageRequest(
+        chatId = chatId,
+        text = allWorldsLearned,
+        replyMarkup = ReplyMarkup(
+            listOf(
+                listOf(
+                    InlineKeyboard(
+                        text = TEXT_MAIN_MENU,
+                        callbackData = CALLBACK_EXIT_MAIN_MENU_CLICKED,
+                    )
+                )
+            )
+        )
+    )
+
+fun getBodyStatistics(chatId: Long, statistics: Statistics): SendMessageRequest {
+    val statistic =
+        "Выучено ${statistics.countLearnedWord} из ${statistics.countWords} слов | ${statistics.percentLearnedWord}%"
+    return SendMessageRequest(
+        chatId = chatId,
+        text = statistic,
+        replyMarkup = ReplyMarkup(
+            listOf(
+                listOf(
+                    InlineKeyboard(
+                        text = TEXT_GO_BACK,
+                        callbackData = CALLBACK_GO_BACK_FROM_STATISTIC_CLICKED,
+                    )
+                )
+            )
+        )
+    )
+}
+
+fun getFileUploadAnswer(chatId: Long, uploadAnswer: String) =
+    SendMessageRequest(
+        chatId = chatId,
+        text = uploadAnswer,
+        replyMarkup = ReplyMarkup(
+            listOf(
+                listOf(
+                    InlineKeyboard(
+                        text = TEXT_GO_BACK,
+                        callbackData = CALLBACK_GO_BACK_FROM_UPLOAD_FILE_CLICKED,
+                    )
+                )
+            )
+        )
     )

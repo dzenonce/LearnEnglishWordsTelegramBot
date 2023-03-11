@@ -3,13 +3,15 @@ package database.sqlite
 import constants.DATABASE_CONNECT_URL
 import constants.SQL_TIMEOUT_QUERY
 import constants.TABLE_STANDARD_WORDS
-import database.interfaces.IUserDictionary
+import interfaces.database.IDatabaseControl
+import interfaces.database.IUserDictionary
 import model.Word
 import java.sql.DriverManager
 
-class DatabaseUserDictionary(
+class SqliteDatabaseUserDictionary(
     private val userId: Long,
     private val minimalQuantityCorrectAnswer: Int,
+    private val databaseControl: IDatabaseControl = SqliteDatabaseControl(),
 ) : IUserDictionary {
 
     private var hasUserCustomWords = checkHasUserCustomWords()
@@ -178,7 +180,7 @@ class DatabaseUserDictionary(
         }
         println("[+] user file loaded")
 
-        DatabaseControl().createCustomWordsTable(userId)
+        databaseControl.createCustomWordsTable(userId)
         DriverManager.getConnection(DATABASE_CONNECT_URL).use { connection ->
             val queryCopyOriginalWordsIntoCustom =
                 "INSERT OR IGNORE INTO $customTableName SELECT * FROM words;"
