@@ -16,8 +16,8 @@ fun main() {
 
     val dictionary: MutableList<Word> = mutableListOf()
 
-    val wordsTxt = File("C:\\Users\\User\\IdeaProjects\\LearnEnglishWordsTelegramBot\\LearnEnglishWordsTelegramBot\\src\\main\\resources\\words.txt")
-    val countLearnedWordTxt = File("C:\\Users\\User\\IdeaProjects\\LearnEnglishWordsTelegramBot\\LearnEnglishWordsTelegramBot\\src\\main\\resources\\countLearnedWord.txt")
+    val wordsTxt = File("words.txt")
+    val countLearnedWordTxt = File("countLearnedWord.txt")
 
     var counterLearnedWord = 0
 
