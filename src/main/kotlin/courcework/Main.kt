@@ -33,7 +33,7 @@ fun main() {
         when (readln()) {
             "1" -> println("TODO меню учить слова")
             "2" -> printStatistics()
-            EXIT -> return
+            "3" -> return
 
             else -> println("Введен недопустимый параметр")
         }
@@ -45,11 +45,11 @@ fun main() {
 fun printStatistics() {
 
     val countWord = dictionary.size
-    val countLearnedWord = dictionary.filter { it.correctAnswersCount >= 3 }.size
+    val countLearnedWord = dictionary.filter { it.correctAnswersCount >= REQUIRED_COUNT_CORRECT_ANSWER }.size
     val percentLearnedWord = countLearnedWord.toDouble() / countWord.toDouble() * 100
 
     println("Выучено $countLearnedWord из $countWord | ${percentLearnedWord.toInt()}%")
 
 }
 
-const val EXIT = "3"
+const val REQUIRED_COUNT_CORRECT_ANSWER = 3
