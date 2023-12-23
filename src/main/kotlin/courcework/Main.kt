@@ -45,9 +45,9 @@ fun printStats() {
     }
 
     val countWord = dictionary.size
-    val learnedWord = dictionary.filter { it.correctAnswersCount >= 3 }.size
-    val percentLearnedWord = learnedWord.toDouble() / countWord.toDouble() * 100
+    val countLearnedWord = dictionary.filter { it.correctAnswersCount >= 3 }.size
+    val percentLearnedWord = countLearnedWord.toDouble() / countWord.toDouble() * 100
 
-    println("Выучено $learnedWord из $countWord | ${percentLearnedWord.toInt()}%")
+    println("Выучено $countLearnedWord из $countWord | ${percentLearnedWord.toInt()}%")
 
 }
