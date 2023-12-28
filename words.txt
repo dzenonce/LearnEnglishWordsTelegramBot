@@ -1,10 +1,10 @@
-cat|кот|5
-dog|собака|3
-wall|стена|0
-thank you|спасибо|5
-percent|процент|3
-car|машина|3
-wolf|волк|3
-good|хорошо|3
+cat|кот|1
+dog|собака|1
+wall|стена|1
+thank you|спасибо|0
+percent|процент|0
+car|машина|0
+wolf|волк|0
+good|хорошо|1
 string|строка|0
-apple|яблоко|3
+apple|яблоко|0
