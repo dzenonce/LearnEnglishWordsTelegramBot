@@ -85,9 +85,7 @@ fun learnWords() {
         if (userChoseAnswer == correctWordIndex) {
             correctWord.correctAnswersCount++
             println("Правильно!")
-
             saveDictionary()
-
         } else println("Неправильно - слово ${correctWord.translate}")
     }
 
@@ -95,12 +93,11 @@ fun learnWords() {
 
 fun saveDictionary() {
 
-    var newWordsList: String = ""
+    wordsTxt.writeText("")
 
     dictionary.forEach {
-        newWordsList += "${it.original}|${it.translate}|${it.correctAnswersCount}\n"
+        wordsTxt.appendText("${it.original}|${it.translate}|${it.correctAnswersCount}\n")
     }
-    wordsTxt.writeText(newWordsList)
 
 }
 
