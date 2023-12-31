@@ -19,7 +19,15 @@ fun Question.asConsoleString(): String {
 
 fun main() {
 
-    val trainer = LearnWordsTrainer()
+    val trainer = try {
+        LearnWordsTrainer(
+            numberOfCountOption = 4,
+            requiredCountCorrectAnswer = 3,
+        )
+    } catch (e: Exception) {
+        println("Некорректный файл")
+        return
+    }
 
     while (true) {
         println("Меню: \n1 - Учить слова \n2 - Статистика \n3 - Выход ")
@@ -37,9 +45,9 @@ fun main() {
                     if (userChoseAnswer == 0) break
 
                     if (trainer.checkAnswer(userChoseAnswer?.minus(1))) {
-                        println("Правильно")
+                        println("Правильно!")
                     } else {
-                        println("Неправильно: ${question.correctWord.original} - ${question.correctWord.translate} ")
+                        println("Не правильно: ${question.correctWord.original} - ${question.correctWord.translate} ")
                     }
                 }
             }

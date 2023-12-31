@@ -13,11 +13,14 @@ data class Question(
     val correctWord: Word,
 )
 
-class LearnWordsTrainer {
+class LearnWordsTrainer(
+    private val numberOfCountOption: Int,
+    private val requiredCountCorrectAnswer: Int,
+) {
 
     fun getStatistics(): Statistics {
         val countWord = dictionary.size
-        val countLearnedWord = dictionary.filter { it.correctAnswersCount >= REQUIRED_COUNT_CORRECT_ANSWER }.size
+        val countLearnedWord = dictionary.filter { it.correctAnswersCount >= requiredCountCorrectAnswer }.size
         val percentLearnedWord = countLearnedWord * ONE_HUNDRED_PERCENT / countWord
 
         return Statistics(
@@ -29,15 +32,15 @@ class LearnWordsTrainer {
 
     fun getNextQuestion(): Question? {
         val listUnlearnedWords =
-            dictionary.filter { it.correctAnswersCount < REQUIRED_COUNT_CORRECT_ANSWER }.toMutableList()
+            dictionary.filter { it.correctAnswersCount < requiredCountCorrectAnswer }.toMutableList()
         if (listUnlearnedWords.isEmpty()) return null
 
-        if (listUnlearnedWords.size < NUMBER_OF_COUNT_OPTION) {
-            val learnedWords = dictionary.filter { it.correctAnswersCount >= REQUIRED_COUNT_CORRECT_ANSWER }
-            val missingWords = learnedWords.shuffled().take(NUMBER_OF_COUNT_OPTION - listUnlearnedWords.size)
+        if (listUnlearnedWords.size < numberOfCountOption) {
+            val learnedWords = dictionary.filter { it.correctAnswersCount >= requiredCountCorrectAnswer }
+            val missingWords = learnedWords.shuffled().take(numberOfCountOption - listUnlearnedWords.size)
             listUnlearnedWords += missingWords
         }
-        val fourUnlearnedWords = listUnlearnedWords.shuffled().take(NUMBER_OF_COUNT_OPTION)
+        val fourUnlearnedWords = listUnlearnedWords.shuffled().take(numberOfCountOption)
         val correctWord = fourUnlearnedWords.random()
 
         question = Question(
@@ -66,18 +69,22 @@ class LearnWordsTrainer {
     private var question: Question? = null
 
     private fun loadDictionary(): MutableList<Word> {
-        val dictionaryList: MutableList<Word> = mutableListOf()
-        wordsTxt.forEachLine { text ->
-            val line = text.split("|")
-            dictionaryList.add(
-                Word(
-                    original = line[0],
-                    translate = line[1],
-                    correctAnswersCount = line[2].toIntOrNull() ?: 0,
+        try {
+            val dictionaryList: MutableList<Word> = mutableListOf()
+            wordsTxt.forEachLine { text ->
+                val line = text.split("|")
+                dictionaryList.add(
+                    Word(
+                        original = line[0],
+                        translate = line[1],
+                        correctAnswersCount = line[2].toIntOrNull() ?: 0,
+                    )
                 )
-            )
+            }
+            return dictionaryList
+        } catch (e: IndexOutOfBoundsException) {
+            throw IllegalStateException("Некорректный файл!")
         }
-        return dictionaryList
     }
 
     private fun saveDictionary() {
@@ -89,6 +96,4 @@ class LearnWordsTrainer {
 
 }
 
-private const val NUMBER_OF_COUNT_OPTION = 4
-private const val REQUIRED_COUNT_CORRECT_ANSWER = 3
 private const val ONE_HUNDRED_PERCENT = 100
