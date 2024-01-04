@@ -18,6 +18,10 @@ class LearnWordsTrainer(
     private val requiredCountCorrectAnswer: Int,
 ) {
 
+    private val wordsTxt = File("words.txt")
+    private val dictionary = loadDictionary()
+    private var question: Question? = null
+
     fun getStatistics(): Statistics {
         val countWord = dictionary.size
         val countLearnedWord = dictionary.filter { it.correctAnswersCount >= requiredCountCorrectAnswer }.size
@@ -63,10 +67,6 @@ class LearnWordsTrainer(
             }
         } ?: false
     }
-
-    private val wordsTxt = File("words.txt")
-    private val dictionary = loadDictionary()
-    private var question: Question? = null
 
     private fun loadDictionary(): MutableList<Word> {
         try {
