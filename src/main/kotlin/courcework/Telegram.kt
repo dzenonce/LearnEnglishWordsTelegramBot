@@ -1,44 +1,50 @@
 package courcework
 
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
-
-class Telegram(
-    private val botToken: String,
-) {
-
-    fun getUpdates(updateId: Int): String {
-        val url = "https://api.telegram.org/bot$botToken/getUpdates?offset=$updateId"
-
-        val client: HttpClient = HttpClient.newBuilder().build()
-        val request: HttpRequest = HttpRequest.newBuilder()
-            .uri(URI.create(url))
-            .build()
-        val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
-        return response.body()
-    }
-
-}
-
 fun main(args: Array<String>) {
 
-    val telegramRequest = Telegram(
+    val telegramRequest = TelegramBotService(
         botToken = args[0],
     )
 
-    var updateId = 0
+    var updateId: Int? = 0
+
+    val regexFindUpdateId: Regex = "\"update_id\":(.+?),".toRegex()
+    val regexFindChatId: Regex = "\"id\":(.+?),".toRegex()
+    val regexFindMessageText: Regex = "\"text\":\"(.+?)\"".toRegex()
 
     while (true) {
         Thread.sleep(2000)
         val updates = telegramRequest.getUpdates(updateId)
         println(updates)
-        val lastUpdateId = updates.lastIndexOf("update_id")
-        val endUpdateId = updates.lastIndexOf(",\n\"message\"")
-        if (lastUpdateId == -1 || endUpdateId == -1) continue
-        val updateIdString = updates.substring(lastUpdateId + 11, endUpdateId)
-        updateId = updateIdString.toInt() + 1
-    }
 
+        val updateIdString = findRegexQuery(regexFindUpdateId, updates)
+        updateId = updateIdString?.toIntOrNull()?.plus(1)
+
+        val chatIdString: String? = findRegexQuery(regexFindChatId, updates)
+        val chatId: Int? = chatIdString?.toIntOrNull()
+
+        val text: String? = findRegexQuery(regexFindMessageText, updates)
+        if (text?.isNotBlank() != null) {
+            val sentResult = telegramRequest.sendMessage(
+                chatId,
+                text = decodeUnicode(text)
+            )
+            println(sentResult)
+        }
+    }
+}
+
+fun findRegexQuery(regex: Regex, context: String): String? {
+    val matchResult: MatchResult? = regex.find(context)
+    val group = matchResult?.groups
+    return group?.get(1)?.value
+}
+
+fun decodeUnicode(unicodeMessage: String): String {
+    val regex = Regex("\\\\u([0-9A-Fa-f]{4})")
+
+    return regex.replace(unicodeMessage) {
+        val codePoint = it.groupValues[1].toInt(16)
+        codePoint.toChar().toString()
+    }
 }
