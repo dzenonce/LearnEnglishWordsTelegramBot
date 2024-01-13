@@ -1,4 +1,4 @@
-package courcework
+package model
 
 import java.net.URI
 import java.net.URLEncoder
@@ -21,9 +21,28 @@ class TelegramBotService(
         return sendHttpRequest(url)
     }
 
+    fun sendMenu(menuBody: String): String {
+        val url = "https://api.telegram.org/bot$botToken/sendMessage"
+        return sendPostHttpRequest(
+            url = url,
+            body = menuBody
+        )
+    }
+
     private fun sendHttpRequest(url: String): String {
         val client: HttpClient = HttpClient.newBuilder().build()
         val request: HttpRequest = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .build()
+        val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
+        return response.body()
+    }
+
+    private fun sendPostHttpRequest(url: String, body: String): String {
+        val client: HttpClient = HttpClient.newBuilder().build()
+        val request: HttpRequest = HttpRequest.newBuilder()
+            .header("Content-type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(body))
             .uri(URI.create(url))
             .build()
         val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())

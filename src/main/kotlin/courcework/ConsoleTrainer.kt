@@ -1,10 +1,8 @@
 package courcework
 
-data class Word(
-    val original: String,
-    val translate: String,
-    var correctAnswersCount: Int = 0,
-)
+import model.LearnWordsTrainer
+import model.Question
+import model.Word
 
 fun Question.asConsoleString(): String {
 
