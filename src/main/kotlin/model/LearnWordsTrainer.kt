@@ -1,6 +1,12 @@
-package courcework
+package model
 
 import java.io.File
+
+data class Word(
+    val original: String,
+    val translate: String,
+    var correctAnswersCount: Int = 0,
+)
 
 data class Statistics(
     val countWords: Int,
