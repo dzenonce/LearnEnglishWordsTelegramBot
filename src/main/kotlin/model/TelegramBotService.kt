@@ -58,4 +58,4 @@ class TelegramBotService(
 
 }
 
-const val API_TELEGRAM_URL = "https://api.telegram.org/bot"
+private const val API_TELEGRAM_URL = "https://api.telegram.org/bot"
