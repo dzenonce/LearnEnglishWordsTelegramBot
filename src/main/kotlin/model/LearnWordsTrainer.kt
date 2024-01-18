@@ -20,11 +20,12 @@ data class Question(
 )
 
 class LearnWordsTrainer(
+    private val fileName: String = "words.txt",
     private val numberOfCountOption: Int,
     private val requiredCountCorrectAnswer: Int,
 ) {
 
-    private val wordsTxt = File("words.txt")
+    private val sourceWordsFile = File("words.txt")
     private val dictionary = loadDictionary()
     private var question: Question? = null
 
@@ -74,10 +75,21 @@ class LearnWordsTrainer(
         } ?: false
     }
 
+    fun resetProgress() {
+        dictionary.forEach {
+            it.correctAnswersCount = 0
+        }
+        saveDictionary()
+    }
+
     private fun loadDictionary(): MutableList<Word> {
         try {
+            val userWordsFile = File(fileName)
+            if (!userWordsFile.exists()) {
+                sourceWordsFile.copyTo(userWordsFile)
+            }
             val dictionaryList: MutableList<Word> = mutableListOf()
-            wordsTxt.forEachLine { text ->
+            userWordsFile.forEachLine { text ->
                 val line = text.split("|")
                 dictionaryList.add(
                     Word(
@@ -89,14 +101,15 @@ class LearnWordsTrainer(
             }
             return dictionaryList
         } catch (e: IndexOutOfBoundsException) {
-            throw IllegalStateException("Некорректный файл!")
+            throw IllegalStateException("Ошибка в функции loadDictionary! ${e.message}")
         }
     }
 
     private fun saveDictionary() {
-        wordsTxt.writeText("")
+        val userWordsFile = File(fileName)
+        userWordsFile.writeText("")
         dictionary.forEach {
-            wordsTxt.appendText("${it.original}|${it.translate}|${it.correctAnswersCount}\n")
+            userWordsFile.appendText("${it.original}|${it.translate}|${it.correctAnswersCount}\n")
         }
     }
 
