@@ -101,7 +101,7 @@ class LearnWordsTrainer(
             }
             return dictionaryList
         } catch (e: IndexOutOfBoundsException) {
-            throw IllegalStateException("Некорректный файл!")
+            throw IllegalStateException("Ошибка в функции loadDictionary! ${e.message}")
         }
     }
 

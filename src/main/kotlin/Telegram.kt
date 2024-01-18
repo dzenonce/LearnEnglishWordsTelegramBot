@@ -1,15 +1,17 @@
 import model.serialization.*
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import model.*
 
 var currentQuestion: Question? = null
+val json = Json { ignoreUnknownKeys = true }
 
 fun main(args: Array<String>) {
+    println("Bot is running")
 
     val botToken = args[0]
     val telegram = TelegramBotService(
         botToken = botToken,
+        json = json,
     )
 
     val trainers = try {
@@ -20,12 +22,9 @@ fun main(args: Array<String>) {
     }
 
     var lastUpdateId = 0L
-
-    val json = Json { ignoreUnknownKeys = true }
-
     while (true) {
-        Thread.sleep(1500)
-        val responseString =
+        Thread.sleep(PAUSE_TELEGRAM_GET_UPDATE)
+        val response: Response =
             try {
                 telegram.getUpdates(lastUpdateId)
             } catch (e: Error) {
@@ -33,9 +32,8 @@ fun main(args: Array<String>) {
                 continue
             }
 
-        val response: Response = json.decodeFromString(responseString)
         if (response.result.isEmpty()) continue
-        println(responseString)
+        println(response)
         val sortedUpdate = response.result.sortedBy { it.updateId }
         sortedUpdate.forEach {
             handleUpdate(
@@ -58,6 +56,7 @@ fun handleUpdate(
 
     val telegram = TelegramBotService(
         botToken = botToken,
+        json = json,
     )
 
     val message: String = update.message?.text.toString()
@@ -73,7 +72,7 @@ fun handleUpdate(
         )
     }
 
-    val mainMenuBody = json.encodeToString(getMainMenu(chatId))
+    val mainMenuBody = getMainMenu(chatId)
     if (message == "/start")
         try {
             telegram.sendMenu(mainMenuBody)
@@ -97,7 +96,7 @@ fun handleUpdate(
 
         CALLBACK_MENU_STATISTICS_CLICKED -> try {
             telegram.sendMenu(
-                menuBody = json.encodeToString(getStatisticsMenu(chatId = chatId))
+                rawMenuBody = getStatisticsMenu(chatId = chatId),
             )
             telegram.answerCallbackQuery(callbackQueryId)
         } catch (e: Error) {
@@ -189,10 +188,13 @@ fun checkNextQuestionAndSend(
     trainer: LearnWordsTrainer,
     chatId: Long,
     botToken: String,
-    callbackQueryId: String
+    callbackQueryId: String,
 ): Question? {
     val question: Question? = trainer.getNextQuestion()
-    val telegram = TelegramBotService(botToken)
+    val telegram = TelegramBotService(
+        botToken = botToken,
+        json = json,
+    )
     if (question == null)
         try {
             telegram.sendMessage(
@@ -205,11 +207,9 @@ fun checkNextQuestionAndSend(
     else {
         try {
             telegram.sendMenu(
-                menuBody = json.encodeToString(
-                    getLearnWordsMenuBody(
-                        chatId = chatId,
-                        question = question,
-                    )
+                rawMenuBody = getLearnWordsMenuBody(
+                    chatId = chatId,
+                    question = question,
                 )
             )
             telegram.answerCallbackQuery(callbackQueryId)
