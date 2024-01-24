@@ -21,6 +21,8 @@ data class Update(
 
 @Serializable
 data class Message(
+    @SerialName("message_id")
+    val messageId: Long,
     @SerialName("text")
     val text: String? = null,
     @SerialName("chat")

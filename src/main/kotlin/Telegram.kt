@@ -65,6 +65,7 @@ fun handleUpdate(
     val callbackData: String = update.callbackQuery?.data.toString()
     val callbackQueryId: String = update.callbackQuery?.id.toString()
     val document: Document? = update.message?.document
+    val messageId: Long = update.message?.messageId ?: 0
 
     val trainer = trainers.getOrPut(chatId) {
         LearnWordsTrainer(
@@ -79,9 +80,12 @@ fun handleUpdate(
             chatId = chatId,
             document = document,
             telegram = telegram,
-
-            )
+        )
         trainer.reloadDictionary()
+        telegram.deleteMessage(
+            chatId = chatId,
+            messageId = messageId
+        )
     }
 
     val mainMenuBody = getBodyMainMenu(chatId)
