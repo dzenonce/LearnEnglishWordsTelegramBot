@@ -3,8 +3,8 @@ package model
 import java.io.File
 
 data class Word(
-    val original: String,
-    val translate: String,
+    val original: String?,
+    val translate: String?,
     var correctAnswersCount: Int = 0,
 )
 
@@ -20,16 +20,17 @@ data class Question(
 )
 
 class LearnWordsTrainer(
-    private val fileName: String = "words.txt",
+    var fileName: String = "words.txt",
     private val numberOfCountOption: Int,
     private val requiredCountCorrectAnswer: Int,
 ) {
 
     private val sourceWordsFile = File("words.txt")
-    private val dictionary = loadDictionary()
+    private var dictionary = loadDictionary()
     private var question: Question? = null
 
-    fun getStatistics(): Statistics {
+    fun getStatistics(): Statistics? {
+        if (dictionary.size == 0) return null
         val countWord = dictionary.size
         val countLearnedWord = dictionary.filter { it.correctAnswersCount >= requiredCountCorrectAnswer }.size
         val percentLearnedWord = countLearnedWord * ONE_HUNDRED_PERCENT / countWord
@@ -82,6 +83,10 @@ class LearnWordsTrainer(
         saveDictionary()
     }
 
+    fun reloadDictionary() {
+        dictionary = loadDictionary()
+    }
+
     private fun loadDictionary(): MutableList<Word> {
         try {
             val userWordsFile = File(fileName)
@@ -91,6 +96,7 @@ class LearnWordsTrainer(
             val dictionaryList: MutableList<Word> = mutableListOf()
             userWordsFile.forEachLine { text ->
                 val line = text.split("|")
+                if (line.size < 3) return@forEachLine
                 dictionaryList.add(
                     Word(
                         original = line[0],

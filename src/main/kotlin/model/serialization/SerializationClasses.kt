@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Response(
     @SerialName("result")
-    val result: List<Update>
+    val result: List<Update>,
 )
 
 @Serializable
@@ -22,15 +22,31 @@ data class Update(
 @Serializable
 data class Message(
     @SerialName("text")
-    val text: String,
+    val text: String? = null,
     @SerialName("chat")
     val chat: Chat,
+    @SerialName("document")
+    val document: Document? = null,
 )
 
 @Serializable
 data class Chat(
     @SerialName("id")
     val id: Long,
+)
+
+@Serializable
+data class Document(
+    @SerialName("file_name")
+    val fileName: String,
+    @SerialName("mime_type")
+    val mimeType: String,
+    @SerialName("file_id")
+    val fileId: String,
+    @SerialName("file_unique_id")
+    val fileUniqueId: String,
+    @SerialName("file_size")
+    val fileSize: Long,
 )
 
 @Serializable
@@ -46,11 +62,11 @@ data class CallbackQuery(
 @Serializable
 data class SendMessageRequest(
     @SerialName("chat_id")
-    val chatId: Long?,
+    val chatId: Long,
     @SerialName("text")
-    val text: String,
+    val text: String?,
     @SerialName("reply_markup")
-    val replyMarkup: ReplyMarkup,
+    val replyMarkup: ReplyMarkup? = null,
 )
 
 @Serializable
@@ -62,7 +78,34 @@ data class ReplyMarkup(
 @Serializable
 data class InlineKeyboard(
     @SerialName("text")
-    val text: String,
+    val text: String?,
     @SerialName("callback_data")
     val callbackData: String,
+)
+
+@Serializable
+data class GetFileRequest(
+    @SerialName("file_id")
+    val fileId: String,
+)
+
+@Serializable
+data class GetFileResponse(
+    @SerialName("ok")
+    val ok: Boolean,
+    @SerialName("result")
+    val response: TelegramFile? = null,
+)
+
+@Serializable
+data class TelegramFile(
+    @SerialName("file_id")
+    val fileId: String,
+    @SerialName("file_unique_id")
+    val fileUniqueId: String,
+    @SerialName("file_size")
+    val fileSize: Long,
+    @SerialName("file_path")
+    val filePath: String,
+
 )
