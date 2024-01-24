@@ -29,3 +29,4 @@ const val TEXT_SEND_FILE_DESCRIPTION =
 const val TEXT_FILE_ALREADY_EXIST = "Файл с таким названием уже существует!"
 const val TEXT_FILE_LOADED_SUCCESSFUL = "Файл успешно загружен!"
 const val PAUSE_TELEGRAM_GET_UPDATE = 1500L
+const val FILE_TEXT_EXT = ".txt"
