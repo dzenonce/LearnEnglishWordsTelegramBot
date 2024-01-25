@@ -32,7 +32,6 @@ fun main(args: Array<String>) {
                 println("Get Updates with error: ${e.message}")
                 continue
             }
-        println(response)
 
         if (response.result.isEmpty()) continue
         val sortedUpdate = response.result.sortedBy { it.updateId }
@@ -76,16 +75,25 @@ fun handleUpdate(
     }
 
     if (document != null) {
-        getUserWordsFileAndSave(
-            chatId = chatId,
-            document = document,
-            telegram = telegram,
-        )
+        try {
+            getUserWordsFileAndSave(
+                chatId = chatId,
+                document = document,
+                telegram = telegram,
+            )
+        } catch (e: Error) {
+            println("Ошибка получения пользовательского файла ${e.message}")
+        }
         trainer.reloadDictionary()
-        telegram.deleteMessage(
-            chatId = chatId,
-            messageId = messageId
-        )
+
+        try {
+            telegram.deleteMessage(
+                chatId = chatId,
+                messageId = messageId
+            )
+        } catch (e: Error) {
+            println("Ошибка удаления сообщения ползователя: ${e.message}")
+        }
     }
 
     val mainMenuBody = getBodyMainMenu(chatId)

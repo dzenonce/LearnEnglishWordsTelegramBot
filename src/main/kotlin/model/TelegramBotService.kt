@@ -21,6 +21,7 @@ class TelegramBotService(
     fun getUpdates(updateId: Long): Response {
         val url = "$API_TELEGRAM_URL$botToken/getUpdates?offset=$updateId"
         val responseHttpRequest = sendHttpRequest(url)
+        println(responseHttpRequest)
         return json.decodeFromString(responseHttpRequest)
     }
 
