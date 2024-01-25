@@ -260,25 +260,32 @@ fun checkNextQuestionAndSend(
 fun getUserWordsFileAndSave(chatId: Long, document: Document, telegram: TelegramBotService) {
     val userCustomFileName = "$chatId${document.fileName}"
 
-    val fileResponse =
-        telegram.getFile(
-            getBodyFileRequest(document.fileId)
-        )
-    fileResponse?.response.let { tgFile ->
+    val fileResponse = telegram.getFileInfo(
+        getBodyRequestFileInfo(document.fileId)
+    )
+    fileResponse.response.let { tgFile ->
         if (File(userCustomFileName).exists()) {
-            telegram.sendMessage(
-                chatId = chatId,
-                text = TEXT_FILE_ALREADY_EXIST,
-            )
+            try {
+                telegram.sendMessage(
+                    chatId = chatId,
+                    text = TEXT_FILE_ALREADY_EXIST,
+                )
+            } catch (e: Error) {
+                println("Ошибка отправки сообщения о существующем файле ${e.message}")
+            }
             return
         }
         val file =
             telegram.downloadFile(tgFile?.filePath)
-        file.copyTo(File(userCustomFileName).outputStream(), 16 * 1024)
-        telegram.sendMessage(
-            chatId = chatId,
-            text = TEXT_FILE_LOADED_SUCCESSFUL,
-        )
+        file?.copyTo(File(userCustomFileName).outputStream(), 16 * 1024)
+        try {
+            telegram.sendMessage(
+                chatId = chatId,
+                text = TEXT_FILE_LOADED_SUCCESSFUL,
+            )
+        } catch (e: Error) {
+            println("Ошибка отправки сообщения о успешной загрузке файла ${e.message}")
+        }
     }
     File(userCustomFileName).readLines().forEach {
         File("$chatId$FILE_TEXT_EXT").appendText("\n$it")

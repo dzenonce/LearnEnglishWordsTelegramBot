@@ -51,16 +51,20 @@ class TelegramBotService(
         return sendHttpRequest(url)
     }
 
-    fun getFile(rawFileRequestBody: GetFileRequest): GetFileResponse? {
+    fun getFileInfo(rawFileRequestBody: GetFileRequest): GetFileResponse {
         val url = "$API_TELEGRAM_URL$botToken/getFile"
-        val fileResponseString = sendPostHttpRequest(
-            url = url,
-            body = json.encodeToString(rawFileRequestBody)
-        )
+        val fileResponseString = try {
+            sendPostHttpRequest(
+                url = url,
+                body = json.encodeToString(rawFileRequestBody)
+            )
+        } catch (e: Error) {
+            println("Ошибка получения информации о файле: ${e.message}")
+        }.toString()
         return json.decodeFromString(fileResponseString)
     }
 
-    fun downloadFile(filePath: String?): InputStream {
+    fun downloadFile(filePath: String?): InputStream? {
         val url = "https://api.telegram.org/file/bot$botToken/$filePath"
         return sendGetHttpRequest(url)
     }
@@ -85,14 +89,13 @@ class TelegramBotService(
         return response.body()
     }
 
-    private fun sendGetHttpRequest(url: String): InputStream {
+    private fun sendGetHttpRequest(url: String): InputStream? {
         val request: HttpRequest = HttpRequest.newBuilder()
             .uri(URI.create(url))
             .GET()
             .build()
         val response: HttpResponse<InputStream> = HttpClient.newHttpClient()
             .send(request, HttpResponse.BodyHandlers.ofInputStream())
-
         println("Status Code Response: ${response.statusCode()}")
         return response.body()
     }
