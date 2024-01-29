@@ -217,7 +217,11 @@ fun getUserWordsFileAndSave(chatId: Long, document: Document, telegram: Telegram
             chatId = chatId,
             text = TEXT_FILE_LOADED_SUCCESSFUL,
         )
-        userCustomFileOutputStream.close()
+        try {
+            userCustomFileOutputStream.close()
+        } catch (e: Error) {
+            println("Не удалось закрыть OutputStream в getUserWordsFileAndSave ${e.message}")
+        }
     }
     userCustomTempFile.readLines()
         .forEach { File("$chatId$FILE_TEXT_EXT").appendText("\n$it") }
