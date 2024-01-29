@@ -85,6 +85,8 @@ class LearnWordsTrainer(
 
     fun reloadDictionary() {
         dictionary = loadDictionary()
+        resetProgress()
+        removeDuplicatesFromFile()
     }
 
     private fun loadDictionary(): MutableList<Word> {
@@ -117,6 +119,13 @@ class LearnWordsTrainer(
         dictionary.forEach {
             userWordsFile.appendText("${it.original}|${it.translate}|${it.correctAnswersCount}\n")
         }
+    }
+
+    private fun removeDuplicatesFromFile() {
+        val file = File(fileName)
+        val a = file.readLines().toSet()
+        file.writeText("")
+        a.forEach { file.appendText("$it\n") }
     }
 
 }

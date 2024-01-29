@@ -1,6 +1,8 @@
-import model.serialization.*
 import kotlinx.serialization.json.Json
 import model.*
+import model.serialization.Document
+import model.serialization.Response
+import model.serialization.Update
 import java.io.File
 
 var currentQuestion: Question? = null
@@ -194,13 +196,13 @@ fun checkNextQuestionAndSend(
 }
 
 fun getUserWordsFileAndSave(chatId: Long, document: Document, telegram: TelegramBotService) {
-    val userCustomFileName = "$chatId${document.fileName}"
+    val userCustomTempFile = File("$chatId${document.fileName}")
 
     val fileResponse = telegram.getFileInfo(
         getBodyRequestFileInfo(document.fileId)
     )
     fileResponse?.response.let { tgFile ->
-        if (File(userCustomFileName).exists()) {
+        if (userCustomTempFile.exists()) {
             telegram.sendMessage(
                 chatId = chatId,
                 text = TEXT_FILE_ALREADY_EXIST,
@@ -209,13 +211,15 @@ fun getUserWordsFileAndSave(chatId: Long, document: Document, telegram: Telegram
         }
         val file =
             telegram.downloadFile(tgFile?.filePath)
-        file?.copyTo(File(userCustomFileName).outputStream(), 16 * 1024)
+        val userCustomFileOutputStream = userCustomTempFile.outputStream()
+        file?.copyTo(userCustomFileOutputStream, 16 * 1024)
         telegram.sendMessage(
             chatId = chatId,
             text = TEXT_FILE_LOADED_SUCCESSFUL,
         )
+        userCustomFileOutputStream.close()
     }
-    File(userCustomFileName).readLines().forEach {
-        File("$chatId$FILE_TEXT_EXT").appendText("\n$it")
-    }
+    userCustomTempFile.readLines()
+        .forEach { File("$chatId$FILE_TEXT_EXT").appendText("\n$it") }
+    userCustomTempFile.delete()
 }
