@@ -3,8 +3,8 @@ package model
 import java.io.File
 
 data class Word(
-    val original: String,
-    val translate: String,
+    val original: String?,
+    val translate: String?,
     var correctAnswersCount: Int = 0,
 )
 
@@ -20,16 +20,17 @@ data class Question(
 )
 
 class LearnWordsTrainer(
-    private val fileName: String = "words.txt",
+    var fileName: String = FILE_SOURCE_WORDS_FILE_NAME,
     private val numberOfCountOption: Int,
     private val requiredCountCorrectAnswer: Int,
 ) {
 
-    private val sourceWordsFile = File("words.txt")
-    private val dictionary = loadDictionary()
+    private val sourceWordsFile = File(FILE_SOURCE_WORDS_FILE_NAME)
+    private var dictionary = loadDictionary()
     private var question: Question? = null
 
     fun getStatistics(): Statistics {
+        if (dictionary.size == 0) return Statistics(0,0,0,)
         val countWord = dictionary.size
         val countLearnedWord = dictionary.filter { it.correctAnswersCount >= requiredCountCorrectAnswer }.size
         val percentLearnedWord = countLearnedWord * ONE_HUNDRED_PERCENT / countWord
@@ -82,6 +83,12 @@ class LearnWordsTrainer(
         saveDictionary()
     }
 
+    fun reloadDictionary() {
+        dictionary = loadDictionary()
+        resetProgress()
+        removeDuplicatesFromFile()
+    }
+
     private fun loadDictionary(): MutableList<Word> {
         try {
             val userWordsFile = File(fileName)
@@ -91,6 +98,7 @@ class LearnWordsTrainer(
             val dictionaryList: MutableList<Word> = mutableListOf()
             userWordsFile.forEachLine { text ->
                 val line = text.split("|")
+                if (line.size < 3) return@forEachLine
                 dictionaryList.add(
                     Word(
                         original = line[0],
@@ -111,6 +119,13 @@ class LearnWordsTrainer(
         dictionary.forEach {
             userWordsFile.appendText("${it.original}|${it.translate}|${it.correctAnswersCount}\n")
         }
+    }
+
+    private fun removeDuplicatesFromFile() {
+        val file = File(fileName)
+        val dictionaryWithoutDuplicates = file.readLines().toSet()
+        file.writeText("")
+        dictionaryWithoutDuplicates.forEach { file.appendText("$it\n") }
     }
 
 }
