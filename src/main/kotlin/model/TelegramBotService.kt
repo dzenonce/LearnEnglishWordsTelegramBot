@@ -36,11 +36,11 @@ class TelegramBotService(
         return sendHttpRequest(url)
     }
 
-    fun sendMenu(rawMenuBody: SendMessageRequest): String? {
+    fun sendMenu(rawMessageBody: SendMessageRequest): String? {
         val url = "$API_TELEGRAM_URL$botToken/sendMessage"
         return sendPostHttpRequest(
             url = url,
-            body = json.encodeToString(rawMenuBody)
+            body = json.encodeToString(rawMessageBody)
         )
     }
 
