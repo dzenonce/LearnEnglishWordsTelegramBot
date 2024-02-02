@@ -50,6 +50,6 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            systemctl restart english-learning-bot
-            2
+            sudo systemctl restart english-learning-bot
             ${{ secrets.SSH_PASSWORD }}
+
