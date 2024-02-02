@@ -29,8 +29,8 @@ jobs:
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
           source: bot.jar
           target: /home/englishbot/prod
 
