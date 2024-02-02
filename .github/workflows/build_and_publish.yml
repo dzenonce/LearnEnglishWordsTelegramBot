@@ -51,3 +51,5 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
             systemctl restart english-learning-bot
+            2
+            ${{ secrets.SSH_PASSWORD }}
