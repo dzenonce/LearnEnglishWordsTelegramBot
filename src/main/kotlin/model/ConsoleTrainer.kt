@@ -1,26 +1,25 @@
-package courcework
+package model
 
-import model.LearnWordsTrainer
-import model.Question
-import model.Word
+import model.trainer.LearnWordsTrainer
+import model.trainer.Question
+import model.trainer.Word
 
 fun Question.asConsoleString(): String {
-
     val questionVariant =
         this.fourUnlearnedWords
             .mapIndexed { index: Int, word: Word -> "${index.plus(1)} - ${word.translate}" }
             .joinToString("\n")
 
     return this.correctWord.original + "\n" + questionVariant + "\n" + "---- \n(0) - Выход в меню \n----"
-
 }
 
 fun main() {
 
     val trainer = try {
         LearnWordsTrainer(
-            numberOfCountOption = 4,
-            requiredCountCorrectAnswer = 3,
+            userId = 0,
+            countWordsForLearning = 4,
+            minimalQuantityCorrectAnswer = 3,
         )
     } catch (e: Exception) {
         println("Некорректный файл")
@@ -52,7 +51,7 @@ fun main() {
 
             "2" -> {
                 val statistics = trainer.getStatistics()
-                println("Выучено ${statistics?.countLearnedWord} из ${statistics?.countWords} слов / ${statistics?.percentLearnedWord}%")
+                println("Выучено ${statistics.countLearnedWord} из ${statistics.countWords} слов / ${statistics.percentLearnedWord}%")
             }
 
             "3" -> return
