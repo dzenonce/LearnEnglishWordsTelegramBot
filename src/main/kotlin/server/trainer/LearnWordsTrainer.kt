@@ -1,43 +1,24 @@
-package model.trainer
+package server.trainer
 
-import model.database.DatabaseUserDictionary
-
-data class Word(
-    val original: String?,
-    val translate: String?,
-    var correctAnswersCount: Int = DEFAULT_VALUE_ANSWER_COUNT,
-)
-
-data class Statistics(
-    val countWords: Int,
-    val countLearnedWord: Int,
-    val percentLearnedWord: Int,
-)
-
-data class Question(
-    val fourUnlearnedWords: List<Word>,
-    val correctWord: Word,
-)
+import database.interfaces.IUserDictionary
+import model.Question
+import model.Statistics
 
 class LearnWordsTrainer(
-    private val userId: Long,
     private val countWordsForLearning: Int,
-    minimalQuantityCorrectAnswer: Int,
+    private val userDictionary: IUserDictionary,
 ) {
-
-    private val userDatabaseDictionary = DatabaseUserDictionary(
-        userId = userId,
-        minimalQuantityCorrectAnswer = minimalQuantityCorrectAnswer,
-        )
 
     private var question: Question? = null
 
-    fun resetUserProgress() = userDatabaseDictionary.resetUserProgress()
+    fun resetUserProgress() = userDictionary.resetUserProgress()
+
+    fun loadCustomWordsFile(rawWordsSet: Set<String>) = userDictionary.loadCustomWordsFile(rawWordsSet)
 
     fun getStatistics(): Statistics {
-        val countWords = userDatabaseDictionary.getSize()
+        val countWords = userDictionary.getSize()
         if (countWords == 0) return Statistics(0, 0, 0)
-        val countLearnedWord = userDatabaseDictionary.getNumOfLearnedWords()
+        val countLearnedWord = userDictionary.getNumOfLearnedWords()
         val percentLearnedWord = countLearnedWord * ONE_HUNDRED_PERCENT / countWords
 
         return Statistics(
@@ -48,10 +29,10 @@ class LearnWordsTrainer(
     }
 
     fun getNextQuestion(): Question? {
-        val listUnlearnedWords = userDatabaseDictionary.getUnlearnedWords().toMutableList()
+        val listUnlearnedWords = userDictionary.getUnlearnedWords().toMutableList()
         if (listUnlearnedWords.isEmpty()) return null
         if (listUnlearnedWords.size < countWordsForLearning) {
-            val learnedWords = userDatabaseDictionary.getLearnedWords()
+            val learnedWords = userDictionary.getLearnedWords()
             val missingWords =
                 learnedWords.shuffled().take(countWordsForLearning - listUnlearnedWords.size)
             listUnlearnedWords += missingWords
@@ -71,7 +52,7 @@ class LearnWordsTrainer(
         return question?.let { question ->
             val correctAnswerId = question.fourUnlearnedWords.indexOf(question.correctWord)
             if (userChoseAnswer == correctAnswerId) {
-                userDatabaseDictionary.setCorrectAnswersCount(
+                userDictionary.setCorrectAnswersCount(
                     question.correctWord.original.toString(),
                     ++question.correctWord.correctAnswersCount,
                 )
@@ -84,4 +65,3 @@ class LearnWordsTrainer(
 }
 
 private const val ONE_HUNDRED_PERCENT = 100
-private const val DEFAULT_VALUE_ANSWER_COUNT = 0

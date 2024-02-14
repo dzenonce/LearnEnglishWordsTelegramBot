@@ -1,4 +1,4 @@
-package model.database
+package model
 
 data class User(
     val username: String,

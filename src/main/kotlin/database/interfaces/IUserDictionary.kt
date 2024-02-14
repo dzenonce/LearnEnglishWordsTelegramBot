@@ -1,6 +1,6 @@
-package model.database
+package database.interfaces
 
-import model.trainer.Word
+import model.Word
 
 interface IUserDictionary {
     fun getNumOfLearnedWords(): Int
@@ -9,4 +9,5 @@ interface IUserDictionary {
     fun getUnlearnedWords(): List<Word>
     fun setCorrectAnswersCount(original: String, correctAnswersCount: Int)
     fun resetUserProgress()
+    fun loadCustomWordsFile(rawWordsSet: Set<String>)
 }

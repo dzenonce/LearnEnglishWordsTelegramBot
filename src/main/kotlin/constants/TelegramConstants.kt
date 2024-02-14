@@ -1,4 +1,4 @@
-package model.constants
+package constants
 
 const val CALLBACK_LEARN_WORDS_CLICKED = "learn_words_clicked"
 const val CALLBACK_MENU_STATISTICS_CLICKED = "menu_statistics_clicked"
@@ -33,5 +33,5 @@ const val TEXT_FILE_EXT = ".txt"
 const val TEXT_STANDARD_WORDS_FILE_NAME = "words$TEXT_FILE_EXT"
 
 const val PAUSE_TELEGRAM_GET_UPDATE = 1000L
-const val QUANTITY_WORDS_FOR_LEARNING = 4
-const val QUANTITY_MINIMAL_CORRECT_ANSWER = 2
+
+const val API_TELEGRAM_URL = "https://api.telegram.org/bot"

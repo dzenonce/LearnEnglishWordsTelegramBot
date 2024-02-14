@@ -1,4 +1,4 @@
-package model.handling.query
+package server.serialization
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

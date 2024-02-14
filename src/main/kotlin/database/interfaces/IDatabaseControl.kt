@@ -1,4 +1,6 @@
-package model.database
+package database.interfaces
+
+import model.User
 
 interface IDatabaseControl {
     fun initDatabase()
