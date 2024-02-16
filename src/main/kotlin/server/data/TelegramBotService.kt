@@ -1,11 +1,12 @@
-package model
+package server.data
 
+import constants.API_TELEGRAM_URL
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import model.serialization.GetFileRequest
-import model.serialization.GetFileResponse
-import model.serialization.Response
-import model.serialization.SendMessageRequest
+import server.serialization.GetFileRequest
+import server.serialization.GetFileResponse
+import server.serialization.Response
+import server.serialization.SendMessageRequest
 import java.io.InputStream
 import java.net.URI
 import java.net.URLEncoder
@@ -110,7 +111,4 @@ class TelegramBotService(
         println("Status Code Response: ${response.statusCode()}")
         return response.body()
     }
-
 }
-
-private const val API_TELEGRAM_URL = "https://api.telegram.org/bot"
