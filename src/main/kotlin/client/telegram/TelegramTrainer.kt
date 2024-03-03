@@ -1,14 +1,13 @@
 package client.telegram
 
 import client.telegram.ui.*
-import kotlinx.serialization.json.Json
-import server.data.TelegramBotService
 import constants.*
 import database.sqlite.DatabaseControl
 import database.sqlite.DatabaseUserDictionary
+import kotlinx.serialization.json.Json
 import model.Question
-import model.Statistics
 import model.User
+import server.data.TelegramBotService
 import server.serialization.Document
 import server.serialization.Response
 import server.serialization.Update
@@ -38,15 +37,16 @@ fun main(args: Array<String>) {
     }
 
     var lastUpdateId = 0L
+
     while (true) {
         Thread.sleep(PAUSE_TELEGRAM_GET_UPDATE)
-        val response: Response? = telegram.getUpdates(lastUpdateId)
+        val userResponse: Response? = telegram.getUpdates(lastUpdateId)
 
-        if (response?.result?.isEmpty() == true) continue
-        val sortedUpdate = response?.result?.sortedBy { it.updateId }
-        sortedUpdate?.forEach {
+        if (userResponse?.result?.isEmpty() == true) continue
+        val sortedUpdate = userResponse?.result?.sortedBy { it.updateId }
+        sortedUpdate?.forEach { update ->
             handleUpdate(
-                update = it,
+                userUpdate = update,
                 json = json,
                 trainers = trainers,
                 botToken = botToken,
@@ -57,7 +57,7 @@ fun main(args: Array<String>) {
 }
 
 fun handleUpdate(
-    update: Update,
+    userUpdate: Update,
     json: Json,
     trainers: HashMap<Long, LearnWordsTrainer>,
     botToken: String,
@@ -68,14 +68,15 @@ fun handleUpdate(
         json = json,
     )
 
-    val chatId: Long = update.message?.chat?.id ?: update.callbackQuery?.message?.chat?.id ?: return
-    val message: String = update.message?.text.toString()
-    val callbackData: String = update.callbackQuery?.data.toString()
-    val callbackQueryId: String = update.callbackQuery?.id.toString()
-    val document: Document? = update.message?.document
-    val messageId: Long = update.message?.messageId ?: 0L
-    val username: String = update.message?.chat?.username ?: "<не указан>"
-    val date: Long = update.message?.date ?: 0L
+    // TODO кажется, это должно быть в ENUM CLASS
+    val chatId: Long = userUpdate.message?.chat?.id ?: userUpdate.callbackQuery?.message?.chat?.id ?: return
+    val message: String = userUpdate.message?.text.toString()
+    val callbackData: String = userUpdate.callbackQuery?.data.toString()
+    val callbackQueryId: String = userUpdate.callbackQuery?.id.toString()
+    val document: Document? = userUpdate.message?.document
+    val messageId: Long = userUpdate.message?.messageId ?: 0L
+    val username: String = userUpdate.message?.chat?.username ?: "<не указан>"
+    val date: Long = userUpdate.message?.date ?: 0L
 
     val trainer = trainers.getOrPut(chatId) {
         LearnWordsTrainer(
@@ -111,7 +112,6 @@ fun handleUpdate(
             )
         )
         telegram.sendMenu(mainMenuBody)
-
     }
 
     when (callbackData.lowercase()) {
@@ -128,7 +128,8 @@ fun handleUpdate(
         }
 
         CALLBACK_MENU_STATISTICS_CLICKED -> {
-            telegram.sendMenu(
+            telegram.editMessage(
+                chatId = chatId,
                 rawMessageBody = getBodyStatisticsMenu(
                     chatId = chatId,
                 ),
@@ -137,16 +138,20 @@ fun handleUpdate(
         }
 
         CALLBACK_LOAD_WORDS_FILE_CLICKED -> {
-            telegram.sendMenu(
+            telegram.editMessage(
+                chatId = chatId,
                 rawMessageBody = getBodyUploadWordsListMenu(chatId)
             )
             telegram.answerCallbackQuery(callbackQueryId)
         }
 
         CALLBACK_SHOW_STATISTICS_CLICKED -> {
-            telegram.sendMessage(
+            telegram.editMessage(
                 chatId = chatId,
-                text = getStatisticsString(trainer.getStatistics())
+                rawMessageBody = getBodyStatistics(
+                    chatId = chatId,
+                    statistics = trainer.getStatistics()
+                )
             )
             telegram.answerCallbackQuery(callbackQueryId)
         }
@@ -157,32 +162,74 @@ fun handleUpdate(
         }
 
         CALLBACK_EXIT_MAIN_MENU_CLICKED -> {
-            telegram.sendMenu(mainMenuBody)
+            telegram.editMessage(
+                chatId = chatId,
+                rawMessageBody = mainMenuBody,
+            )
+            telegram.answerCallbackQuery(callbackQueryId)
+        }
+
+        CALLBACK_EXIT_MAIN_MENU_FROM_WORDS_CLICKED -> {
+            telegram.deleteMessage(
+                chatId = chatId,
+                messageId = DatabaseControl().getResultBotMessageId(chatId),
+            )
+            DatabaseControl().resetResultMessageId(chatId)
+            telegram.editMessage(
+                chatId = chatId,
+                rawMessageBody = mainMenuBody,
+            )
             telegram.answerCallbackQuery(callbackQueryId)
         }
 
         CALLBACK_GO_BACK_CLICKED -> {
-            telegram.sendMenu(mainMenuBody)
+            telegram.editMessage(
+                chatId = chatId,
+                rawMessageBody = mainMenuBody,
+            )
             telegram.answerCallbackQuery(callbackQueryId)
         }
 
+        CALLBACK_GO_BACK_FROM_STATISTIC_CLICKED -> {
+            telegram.editMessage(
+                chatId = chatId,
+                rawMessageBody = getBodyStatisticsMenu(
+                    chatId = chatId,
+                ),
+            )
+        }
+
+        CALLBACK_GO_BACK_FROM_UPLOAD_FILE_CLICKED -> {
+            telegram.editMessage(
+                chatId = chatId,
+                rawMessageBody = mainMenuBody,
+            )
+            telegram.answerCallbackQuery(callbackQueryId)
+        }
     }
 
     if (callbackData.startsWith(CALLBACK_ANSWER_PREFIX)) {
         val answerIndex = callbackData.substringAfter(CALLBACK_ANSWER_PREFIX).toInt()
         val checkAnswerResult = trainer.checkAnswer(answerIndex)
-        when (checkAnswerResult) {
-            true -> telegram.sendMessage(
-                chatId = chatId,
-                text = TEXT_ANSWER_CORRECT
-            )
-
-            false -> telegram.sendMessage(
-                chatId = chatId,
-                text =
+        val answerResult =
+            if (checkAnswerResult) TEXT_ANSWER_CORRECT else
                 "$TEXT_ANSWER_WRONG : ${currentQuestion?.correctWord?.original} - ${currentQuestion?.correctWord?.translate}"
+
+        telegram.editMessage(
+            chatId = chatId,
+            rawMessageBody = getBodyResultAnswer(
+                chatId = chatId,
+                resultAnswer = answerResult,
+            )
+        ).let { botResponse ->
+            val resultMessageId = DatabaseControl().getResultBotMessageId(chatId)
+            if (resultMessageId != 0L) telegram.deleteMessage(chatId, resultMessageId)
+            DatabaseControl().saveResultBotMessageId(
+                chatId = botResponse?.result?.chat?.id,
+                resultBotId = botResponse?.result?.botMessageId
             )
         }
+
         currentQuestion =
             checkNextQuestionAndSend(
                 trainer = trainer,
@@ -193,9 +240,6 @@ fun handleUpdate(
             )
     }
 }
-
-fun getStatisticsString(statistics: Statistics?) =
-    "Выучено ${statistics?.countLearnedWord} из ${statistics?.countWords} слов | ${statistics?.percentLearnedWord}%"
 
 fun checkNextQuestionAndSend(
     json: Json,
@@ -210,23 +254,39 @@ fun checkNextQuestionAndSend(
         json = json,
     )
     if (question == null)
-        telegram.sendMessage(
+        telegram.editMessage(
             chatId = chatId,
-            text = TEXT_ALL_WORDS_LEARNED
-        )
-    else {
-        telegram.sendMenu(
-            rawMessageBody = getBodyLearnWordsMenu(
+            rawMessageBody = getBodyAllWordsLearned(
                 chatId = chatId,
-                question = question,
+                allWorldsLearned = TEXT_ALL_WORDS_LEARNED
             )
         )
+    else {
+        if (DatabaseControl().getResultBotMessageId(chatId) == 0L)
+            telegram.editMessage(
+                chatId = chatId,
+                rawMessageBody = getBodyLearnWordsMenu(
+                    chatId = chatId,
+                    question = question,
+                )
+            )
+        else
+            telegram.sendMenu(
+                rawMessageBody = getBodyLearnWordsMenu(
+                    chatId = chatId,
+                    question = question,
+                )
+            )
         telegram.answerCallbackQuery(callbackQueryId)
     }
     return question
 }
 
-fun getUserWordsFileAndSave(chatId: Long, document: Document, telegram: TelegramBotService): Set<String> {
+fun getUserWordsFileAndSave(
+    chatId: Long,
+    document: Document,
+    telegram: TelegramBotService,
+): Set<String> {
     val userCustomTempFile = File("$chatId${document.fileName}")
 
     val fileResponse = telegram.getFileInfo(
@@ -234,9 +294,12 @@ fun getUserWordsFileAndSave(chatId: Long, document: Document, telegram: Telegram
     )
     fileResponse?.response.let { tgFile ->
         if (userCustomTempFile.exists()) {
-            telegram.sendMessage(
+            telegram.editMessage(
                 chatId = chatId,
-                text = TEXT_FILE_ALREADY_EXIST,
+                rawMessageBody = getFileUploadAnswer(
+                    chatId = chatId,
+                    uploadAnswer = TEXT_FILE_ALREADY_EXIST,
+                ),
             )
             return setOf()
         }
@@ -247,9 +310,12 @@ fun getUserWordsFileAndSave(chatId: Long, document: Document, telegram: Telegram
                 inputStream.copyTo(outputStream, 16 * 1024)
             }
         }
-        telegram.sendMessage(
+        telegram.editMessage(
             chatId = chatId,
-            text = TEXT_FILE_LOADED_SUCCESSFUL,
+            rawMessageBody = getFileUploadAnswer(
+                chatId = chatId,
+                uploadAnswer = TEXT_FILE_LOADED_SUCCESSFUL,
+            )
         )
     }
     val rawWordsSet: Set<String> = userCustomTempFile.readLines().toSet()

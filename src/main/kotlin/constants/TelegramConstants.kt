@@ -5,7 +5,10 @@ const val CALLBACK_MENU_STATISTICS_CLICKED = "menu_statistics_clicked"
 const val CALLBACK_SHOW_STATISTICS_CLICKED = "show_statistics_clicked"
 const val CALLBACK_RESET_STATISTICS_CLICKED = "reset_statistics_clicked"
 const val CALLBACK_EXIT_MAIN_MENU_CLICKED = "exit_main_menu_clicked"
+const val CALLBACK_EXIT_MAIN_MENU_FROM_WORDS_CLICKED = "exit_main_menu_from_words_clicked"
 const val CALLBACK_GO_BACK_CLICKED = "go_back_clicked"
+const val CALLBACK_GO_BACK_FROM_STATISTIC_CLICKED = "go_back_statistic_clicked"
+const val CALLBACK_GO_BACK_FROM_UPLOAD_FILE_CLICKED = "go_back_upload_file_clicked"
 const val CALLBACK_LOAD_WORDS_FILE_CLICKED = "upload_words_file_clicked"
 const val CALLBACK_ANSWER_PREFIX = "answer_"
 
@@ -22,7 +25,7 @@ const val TEXT_COMPLETE_RESET_STATISTICS = "Статистика сброшен�
 const val TEXT_GO_BACK = "Назад"
 const val TEXT_UPLOAD_WORDS_FILE = "Загрузить свои слова"
 const val TEXT_SEND_FILE_DESCRIPTION =
-"""
+    """
 Вы можете загрузить свои слова, просто отправьте текстовый файл в чат.
 Формат данных:
 английское слово|перевод|
