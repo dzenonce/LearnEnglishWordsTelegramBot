@@ -2,12 +2,14 @@ package client.telegram
 
 import client.telegram.ui.*
 import constants.*
-import database.sqlite.DatabaseControl
-import database.sqlite.DatabaseUserDictionary
+import interfaces.database.IDatabaseControl
+import database.sqlite.SqliteDatabaseControl
+import database.sqlite.SqliteDatabaseUserDictionary
 import kotlinx.serialization.json.Json
 import model.Question
 import model.User
 import server.data.TelegramBotService
+import server.serialization.BotResponse
 import server.serialization.Document
 import server.serialization.Response
 import server.serialization.Update
@@ -15,19 +17,20 @@ import server.trainer.LearnWordsTrainer
 import java.io.File
 
 var currentQuestion: Question? = null
-val json = Json { ignoreUnknownKeys = true }
+val databaseControl: IDatabaseControl = SqliteDatabaseControl()
 
 fun main(args: Array<String>) {
     println("[+] bot is running...")
 
     val botToken = args[0]
+    val json = Json { ignoreUnknownKeys = true }
     val telegram = TelegramBotService(
         botToken = botToken,
         json = json,
     )
 
-    DatabaseControl().initDatabase()
-    DatabaseControl().loadStandardWords(TEXT_STANDARD_WORDS_FILE_NAME)
+    databaseControl.initDatabase()
+    databaseControl.loadStandardWords(TEXT_STANDARD_WORDS_FILE_NAME)
 
     val trainers = try {
         HashMap<Long, LearnWordsTrainer>()
@@ -47,9 +50,8 @@ fun main(args: Array<String>) {
         sortedUpdate?.forEach { update ->
             handleUpdate(
                 userUpdate = update,
-                json = json,
                 trainers = trainers,
-                botToken = botToken,
+                telegram = telegram,
             )
         }
         lastUpdateId = sortedUpdate?.last()?.updateId?.plus(1) ?: 0L
@@ -58,30 +60,23 @@ fun main(args: Array<String>) {
 
 fun handleUpdate(
     userUpdate: Update,
-    json: Json,
     trainers: HashMap<Long, LearnWordsTrainer>,
-    botToken: String,
+    telegram: TelegramBotService,
 ) {
 
-    val telegram = TelegramBotService(
-        botToken = botToken,
-        json = json,
-    )
-
-    // TODO кажется, это должно быть в ENUM CLASS
     val chatId: Long = userUpdate.message?.chat?.id ?: userUpdate.callbackQuery?.message?.chat?.id ?: return
     val message: String = userUpdate.message?.text.toString()
     val callbackData: String = userUpdate.callbackQuery?.data.toString()
     val callbackQueryId: String = userUpdate.callbackQuery?.id.toString()
     val document: Document? = userUpdate.message?.document
     val messageId: Long = userUpdate.message?.messageId ?: 0L
-    val username: String = userUpdate.message?.chat?.username ?: "<не указан>"
+    val username: String = userUpdate.message?.chat?.username ?: TEXT_UNSPECIFIED
     val date: Long = userUpdate.message?.date ?: 0L
 
     val trainer = trainers.getOrPut(chatId) {
         LearnWordsTrainer(
             countWordsForLearning = QUANTITY_WORDS_FOR_LEARNING,
-            userDictionary = DatabaseUserDictionary(
+            userDictionary = SqliteDatabaseUserDictionary(
                 userId = chatId,
                 minimalQuantityCorrectAnswer = QUANTITY_MINIMAL_CORRECT_ANSWER
             )
@@ -104,107 +99,114 @@ fun handleUpdate(
 
     val mainMenuBody = getBodyMainMenu(chatId)
     if (message == "/start") {
-        DatabaseControl().addNewUser(
+        databaseControl.addNewUser(
             User(
                 chatId = chatId,
                 username = username,
                 createdAt = date,
             )
         )
-        telegram.sendMenu(mainMenuBody)
+        telegram.sendMenu(mainMenuBody)?.saveLastBotMessageIdToDatabase()
     }
 
     when (callbackData.lowercase()) {
         CALLBACK_LEARN_WORDS_CLICKED -> {
             currentQuestion =
                 checkNextQuestionAndSend(
-                    json = json,
                     trainer = trainer,
+                    telegram = telegram,
                     chatId = chatId,
-                    botToken = botToken,
-                    callbackQueryId = callbackQueryId
+                    callbackQueryId = callbackQueryId,
                 )
-            telegram.answerCallbackQuery(callbackQueryId)
+            telegram.handleCallbackQuery(callbackQueryId)
         }
 
         CALLBACK_MENU_STATISTICS_CLICKED -> {
             telegram.editMessage(
                 chatId = chatId,
+                messageIdToEdit = databaseControl.getLastBotMessageId(chatId),
                 rawMessageBody = getBodyStatisticsMenu(
                     chatId = chatId,
                 ),
-            )
-            telegram.answerCallbackQuery(callbackQueryId)
+            )?.saveLastBotMessageIdToDatabase()
+            telegram.handleCallbackQuery(callbackQueryId)
         }
 
         CALLBACK_LOAD_WORDS_FILE_CLICKED -> {
             telegram.editMessage(
                 chatId = chatId,
+                messageIdToEdit = databaseControl.getLastBotMessageId(chatId),
                 rawMessageBody = getBodyUploadWordsListMenu(chatId)
-            )
-            telegram.answerCallbackQuery(callbackQueryId)
+            )?.saveLastBotMessageIdToDatabase()
+            telegram.handleCallbackQuery(callbackQueryId)
         }
 
         CALLBACK_SHOW_STATISTICS_CLICKED -> {
             telegram.editMessage(
                 chatId = chatId,
+                messageIdToEdit = databaseControl.getLastBotMessageId(chatId),
                 rawMessageBody = getBodyStatistics(
                     chatId = chatId,
                     statistics = trainer.getStatistics()
                 )
-            )
-            telegram.answerCallbackQuery(callbackQueryId)
+            )?.saveLastBotMessageIdToDatabase()
+            telegram.handleCallbackQuery(callbackQueryId)
         }
 
         CALLBACK_RESET_STATISTICS_CLICKED -> {
             trainer.resetUserProgress()
-            telegram.answerCallbackQuery(callbackQueryId, text = TEXT_COMPLETE_RESET_STATISTICS)
+            telegram.handleCallbackQuery(callbackQueryId, text = TEXT_COMPLETE_RESET_STATISTICS)
         }
 
         CALLBACK_EXIT_MAIN_MENU_CLICKED -> {
             telegram.editMessage(
                 chatId = chatId,
+                messageIdToEdit = databaseControl.getLastBotMessageId(chatId),
                 rawMessageBody = mainMenuBody,
-            )
-            telegram.answerCallbackQuery(callbackQueryId)
+            )?.saveLastBotMessageIdToDatabase()
+            telegram.handleCallbackQuery(callbackQueryId)
         }
 
         CALLBACK_EXIT_MAIN_MENU_FROM_WORDS_CLICKED -> {
             telegram.deleteMessage(
                 chatId = chatId,
-                messageId = DatabaseControl().getResultBotMessageId(chatId),
+                messageId = databaseControl.getResultBotMessageId(chatId),
             )
-            DatabaseControl().resetResultMessageId(chatId)
+            databaseControl.resetResultMessageId(chatId)
             telegram.editMessage(
                 chatId = chatId,
+                messageIdToEdit = databaseControl.getLastBotMessageId(chatId),
                 rawMessageBody = mainMenuBody,
-            )
-            telegram.answerCallbackQuery(callbackQueryId)
+            )?.saveLastBotMessageIdToDatabase()
+            telegram.handleCallbackQuery(callbackQueryId)
         }
 
         CALLBACK_GO_BACK_CLICKED -> {
             telegram.editMessage(
                 chatId = chatId,
+                messageIdToEdit = databaseControl.getLastBotMessageId(chatId),
                 rawMessageBody = mainMenuBody,
-            )
-            telegram.answerCallbackQuery(callbackQueryId)
+            )?.saveLastBotMessageIdToDatabase()
+            telegram.handleCallbackQuery(callbackQueryId)
         }
 
         CALLBACK_GO_BACK_FROM_STATISTIC_CLICKED -> {
             telegram.editMessage(
                 chatId = chatId,
+                messageIdToEdit = databaseControl.getLastBotMessageId(chatId),
                 rawMessageBody = getBodyStatisticsMenu(
                     chatId = chatId,
                 ),
-            )
+            )?.saveLastBotMessageIdToDatabase()
         }
 
         CALLBACK_GO_BACK_FROM_UPLOAD_FILE_CLICKED -> {
             telegram.editMessage(
                 chatId = chatId,
+                messageIdToEdit = databaseControl.getLastBotMessageId(chatId),
                 rawMessageBody = mainMenuBody,
-            )
-            telegram.answerCallbackQuery(callbackQueryId)
+            )?.saveLastBotMessageIdToDatabase()
+            telegram.handleCallbackQuery(callbackQueryId)
         }
     }
 
@@ -217,67 +219,61 @@ fun handleUpdate(
 
         telegram.editMessage(
             chatId = chatId,
+            messageIdToEdit = databaseControl.getLastBotMessageId(chatId),
             rawMessageBody = getBodyResultAnswer(
                 chatId = chatId,
                 resultAnswer = answerResult,
             )
         ).let { botResponse ->
-            val resultMessageId = DatabaseControl().getResultBotMessageId(chatId)
+            val resultMessageId = databaseControl.getResultBotMessageId(chatId)
             if (resultMessageId != 0L) telegram.deleteMessage(chatId, resultMessageId)
-            DatabaseControl().saveResultBotMessageId(
-                chatId = botResponse?.result?.chat?.id,
-                resultBotId = botResponse?.result?.botMessageId
-            )
+            botResponse?.saveResultBotMessageId()
         }
 
         currentQuestion =
             checkNextQuestionAndSend(
                 trainer = trainer,
+                telegram = telegram,
                 chatId = chatId,
-                botToken = botToken,
-                json = json,
                 callbackQueryId = callbackQueryId,
             )
     }
 }
 
 fun checkNextQuestionAndSend(
-    json: Json,
     trainer: LearnWordsTrainer,
+    telegram: TelegramBotService,
     chatId: Long,
-    botToken: String,
     callbackQueryId: String,
 ): Question? {
     val question: Question? = trainer.getNextQuestion()
-    val telegram = TelegramBotService(
-        botToken = botToken,
-        json = json,
-    )
     if (question == null)
         telegram.editMessage(
             chatId = chatId,
+            messageIdToEdit = databaseControl.getLastBotMessageId(chatId),
             rawMessageBody = getBodyAllWordsLearned(
                 chatId = chatId,
                 allWorldsLearned = TEXT_ALL_WORDS_LEARNED
             )
-        )
+        )?.saveLastBotMessageIdToDatabase()
     else {
-        if (DatabaseControl().getResultBotMessageId(chatId) == 0L)
+        if (databaseControl.getResultBotMessageId(chatId) == 0L)
             telegram.editMessage(
                 chatId = chatId,
+                messageIdToEdit = databaseControl.getLastBotMessageId(chatId),
                 rawMessageBody = getBodyLearnWordsMenu(
                     chatId = chatId,
                     question = question,
                 )
-            )
+            )?.saveLastBotMessageIdToDatabase()
         else
             telegram.sendMenu(
                 rawMessageBody = getBodyLearnWordsMenu(
                     chatId = chatId,
                     question = question,
                 )
-            )
-        telegram.answerCallbackQuery(callbackQueryId)
+            )?.saveLastBotMessageIdToDatabase()
+        telegram.handleCallbackQuery(callbackQueryId)
     }
     return question
 }
@@ -296,11 +292,12 @@ fun getUserWordsFileAndSave(
         if (userCustomTempFile.exists()) {
             telegram.editMessage(
                 chatId = chatId,
+                messageIdToEdit = databaseControl.getLastBotMessageId(chatId),
                 rawMessageBody = getFileUploadAnswer(
                     chatId = chatId,
                     uploadAnswer = TEXT_FILE_ALREADY_EXIST,
                 ),
-            )
+            )?.saveLastBotMessageIdToDatabase()
             return setOf()
         }
         val userFile =
@@ -312,13 +309,28 @@ fun getUserWordsFileAndSave(
         }
         telegram.editMessage(
             chatId = chatId,
+            messageIdToEdit = databaseControl.getLastBotMessageId(chatId),
             rawMessageBody = getFileUploadAnswer(
                 chatId = chatId,
                 uploadAnswer = TEXT_FILE_LOADED_SUCCESSFUL,
             )
-        )
+        )?.saveLastBotMessageIdToDatabase()
     }
     val rawWordsSet: Set<String> = userCustomTempFile.readLines().toSet()
     userCustomTempFile.delete()
     return rawWordsSet
+}
+
+fun BotResponse.saveLastBotMessageIdToDatabase() {
+    databaseControl.saveLastBotMessageId(
+        chatId = this.result?.chat?.id ?: 0,
+        lastBotId = this.result?.botMessageId ?: 0
+    )
+}
+
+fun BotResponse.saveResultBotMessageId() {
+    databaseControl.saveResultBotMessageId(
+        chatId = this.result?.chat?.id ?: 0,
+        resultBotId = this.result?.botMessageId ?: 0
+    )
 }

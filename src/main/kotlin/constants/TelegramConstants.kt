@@ -34,6 +34,7 @@ const val TEXT_FILE_ALREADY_EXIST = "Файл с таким названием �
 const val TEXT_FILE_LOADED_SUCCESSFUL = "Файл успешно загружен!"
 const val TEXT_FILE_EXT = ".txt"
 const val TEXT_STANDARD_WORDS_FILE_NAME = "words$TEXT_FILE_EXT"
+const val TEXT_UNSPECIFIED = "<не указан>"
 
 const val PAUSE_TELEGRAM_GET_UPDATE = 1000L
 
