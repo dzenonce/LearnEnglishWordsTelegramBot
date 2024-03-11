@@ -2,7 +2,7 @@ package database.file
 
 import constants.QUANTITY_MINIMAL_CORRECT_ANSWER
 import constants.TEXT_STANDARD_WORDS_FILE_NAME
-import database.interfaces.IUserDictionary
+import interfaces.database.IUserDictionary
 import model.Word
 import java.io.File
 
@@ -41,7 +41,7 @@ class FileUserDictionary(
         resetUserProgress()
         removeDuplicatesFromFile()
     }
-
+    // TODO тянет на отдельный интерфейс по работе с файлом
     private fun loadDictionary(): MutableList<Word> {
         try {
             val userWordsFile = File(fileName)
