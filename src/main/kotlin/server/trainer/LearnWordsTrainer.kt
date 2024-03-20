@@ -1,11 +1,13 @@
 package server.trainer
 
+import constants.QUANTITY_WORDS_FOR_LEARNING
 import interfaces.database.IUserDictionary
 import model.Question
 import model.Statistics
+import model.Word
 
 class LearnWordsTrainer(
-    private val countWordsForLearning: Int,
+    var countWordsForLearning: Int = QUANTITY_WORDS_FOR_LEARNING,
     private val userDictionary: IUserDictionary,
 ) {
 
@@ -17,7 +19,7 @@ class LearnWordsTrainer(
 
     fun getStatistics(): Statistics {
         val countWords = userDictionary.getSize()
-        if (countWords == 0) return Statistics(0, 0, 0)
+        if (countWords == 0) return Statistics()
         val countLearnedWord = userDictionary.getNumOfLearnedWords()
         val percentLearnedWord = countLearnedWord * ONE_HUNDRED_PERCENT / countWords
 
@@ -28,9 +30,9 @@ class LearnWordsTrainer(
         )
     }
 
-    fun getNextQuestion(): Question? {
+    fun getNextQuestion(): Question {
         val listUnlearnedWords = userDictionary.getUnlearnedWords().toMutableList()
-        if (listUnlearnedWords.isEmpty()) return null
+        if (listUnlearnedWords.isEmpty()) return Question()
         if (listUnlearnedWords.size < countWordsForLearning) {
             val learnedWords = userDictionary.getLearnedWords()
             val missingWords =
@@ -38,23 +40,24 @@ class LearnWordsTrainer(
             listUnlearnedWords += missingWords
         }
 
-        val fourUnlearnedWords = listUnlearnedWords.shuffled().take(countWordsForLearning)
-        val correctWord = fourUnlearnedWords.random()
+        val unlearnedWords = listUnlearnedWords.shuffled().take(countWordsForLearning)
+        val correctWord = unlearnedWords.random()
 
         question = Question(
-            fourUnlearnedWords,
+            unlearnedWords,
             correctWord,
         )
-        return question
+        return question as Question
     }
 
     fun checkAnswer(userChoseAnswer: Int?): Boolean {
         return question?.let { question ->
-            val correctAnswerId = question.fourUnlearnedWords.indexOf(question.correctWord)
+            val correctAnswerId = question.unlearnedWords.indexOf(question.correctWord)
             if (userChoseAnswer == correctAnswerId) {
+                val correctWord = question.correctWord ?: Word()
                 userDictionary.setCorrectAnswersCount(
-                    question.correctWord.original.toString(),
-                    ++question.correctWord.correctAnswersCount,
+                    correctWord.original.toString(),
+                    ++correctWord.correctAnswersCount,
                 )
                 true
             } else {

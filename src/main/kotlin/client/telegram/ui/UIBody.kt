@@ -68,7 +68,7 @@ fun getBodyStatisticsMenu(chatId: Long) =
 fun getBodyLearnWordsMenu(chatId: Long, question: Question): SendMessageRequest {
 
     val wordsList =
-        question.fourUnlearnedWords.mapIndexed { index, word ->
+        question.unlearnedWords.mapIndexed { index, word ->
             listOf(
                 InlineKeyboard(
                     text = word.original,
@@ -88,7 +88,7 @@ fun getBodyLearnWordsMenu(chatId: Long, question: Question): SendMessageRequest 
 
     return SendMessageRequest(
         chatId = chatId,
-        text = question.correctWord.translate,
+        text = question.correctWord?.translate,
         replyMarkup = ReplyMarkup(
             wordsList,
         )

@@ -1,6 +1,8 @@
 package model
 
 data class Question(
-    val fourUnlearnedWords: List<Word>,
-    val correctWord: Word,
-)
+    val unlearnedWords: List<Word> = listOf(),
+    val correctWord: Word? = null,
+) {
+    fun isNotEmpty() = this.unlearnedWords.isNotEmpty() && correctWord != null
+}

@@ -41,7 +41,7 @@ class FileUserDictionary(
         resetUserProgress()
         removeDuplicatesFromFile()
     }
-    // TODO тянет на отдельный интерфейс по работе с файлом
+    // TODO отдельный интерфейс по работе с файлом
     private fun loadDictionary(): MutableList<Word> {
         try {
             val userWordsFile = File(fileName)
