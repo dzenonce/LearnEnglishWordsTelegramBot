@@ -1,10 +1,10 @@
 package model
 
-import constants.DEFAULT_VALUE_ANSWER_COUNT
+import constants.QUANTITY_DEFAULT_VALUE_ANSWER_COUNT
 
 data class Word(
-    val original: String?,
-    val translate: String?,
-    var correctAnswersCount: Int = DEFAULT_VALUE_ANSWER_COUNT,
+    val original: String? = null,
+    val translate: String? = null,
+    var correctAnswersCount: Int = QUANTITY_DEFAULT_VALUE_ANSWER_COUNT,
 )
 

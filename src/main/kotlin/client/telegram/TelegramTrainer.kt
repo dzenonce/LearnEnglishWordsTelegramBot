@@ -245,10 +245,10 @@ fun checkNextQuestionAndSend(
     telegram: TelegramBotService,
     chatId: Long,
     callbackQueryId: String,
-): Question? {
-    val question: Question? = trainer.getNextQuestion()
+): Question {
+    val question: Question = trainer.getNextQuestion()
 
-    if (question == null)
+    if (!question.isNotEmpty())
         telegram.editMessage(
             chatId = chatId,
             messageIdToEdit = databaseControl.getLastBotMessageId(chatId),

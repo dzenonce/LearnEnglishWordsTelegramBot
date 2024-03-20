@@ -1,18 +1,8 @@
 package client.console
 
+import client.console.extensions.asConsoleString
 import database.file.FileUserDictionary
-import model.Question
-import model.Word
 import server.trainer.LearnWordsTrainer
-
-fun Question.asConsoleString(): String {
-    val questionVariant =
-        this.fourUnlearnedWords
-            .mapIndexed { index: Int, word: Word -> "${index.plus(1)} - ${word.translate}" }
-            .joinToString("\n")
-
-    return this.correctWord.original + "\n" + questionVariant + "\n" + "---- \n(0) - Выход в меню \n----"
-}
 
 fun main() {
 
@@ -32,7 +22,7 @@ fun main() {
             "1" -> {
                 while (true) {
                     val question = trainer.getNextQuestion()
-                    if (question == null) {
+                    if (question.isNotEmpty()) {
                         println("Вы выучили все слова в базе!")
                         break
                     }
@@ -44,7 +34,7 @@ fun main() {
                     if (trainer.checkAnswer(userChoseAnswer?.minus(1))) {
                         println("Правильно!")
                     } else {
-                        println("Не правильно: ${question.correctWord.original} - ${question.correctWord.translate} ")
+                        println("Не правильно: ${question.correctWord?.original} - ${question.correctWord?.translate} ")
                     }
                 }
             }
@@ -59,5 +49,3 @@ fun main() {
         }
     }
 }
-
-
