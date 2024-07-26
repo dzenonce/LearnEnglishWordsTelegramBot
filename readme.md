@@ -1,5 +1,10 @@
 # English Learning Bot
 
+_Demo_
+
+![gifTgBot-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/4d6a062c-b238-4f43-ac97-67dbc3c01fae)
+
+
 Бот для изучения английских слов.
 Начальные слова размещаются в файле words.txt, в формате: `английское слово|перевод|0`.
 Каждая строка соответствует изучаемому слову.
